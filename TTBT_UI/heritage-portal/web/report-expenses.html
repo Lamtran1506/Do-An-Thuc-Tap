@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi phí bảo tồn / vận hành - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="app-header"></div>
+
+    <div class="body">
+      <div class="filter-bar">
+        <label style="font-size: 12px; color: #666">Năm báo cáo:</label>
+        <select id="year-select">
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+        </select>
+      </div>
+
+      <div id="report-content">
+        <div style="padding: 20px; color: #888">Đang tải báo cáo...</div>
+      </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/layout.js"></script>
+    <script>
+      const PERMISSION = "view_report_expense";
+      const MONTH_LABELS = {
+        1: "Tháng 1", 2: "Tháng 2", 3: "Tháng 3", 4: "Tháng 4",
+        5: "Tháng 5", 6: "Tháng 6", 7: "Tháng 7", 8: "Tháng 8",
+        9: "Tháng 9", 10: "Tháng 10", 11: "Tháng 11", 12: "Tháng 12",
+      };
+      const CATEGORY_BADGE = {
+        "Bảo tồn": "b-green",
+        "Vận hành": "b-blue",
+        "Sự kiện": "b-amber",
+      };
+
+      function groupByCategory(rows) {
+        const map = {};
+        rows.forEach((r) => {
+          map[r.category] = (map[r.category] || 0) + Number(r.amount);
+        });
+        return map;
+      }
+
+      async function loadReport(year) {
+        const content = document.getElementById("report-content");
+        content.innerHTML = `<div style="padding: 20px; color: #888">Đang tải báo cáo...</div>`;
+
+        try {
+          const result = await apiFetch(`/reports/expenses?year=${year}`);
+          const rows = result.data;
+          const byCategory = groupByCategory(rows);
+
+          const tableRows = rows
+            .map((r) => {
+              const badgeCls = CATEGORY_BADGE[r.category] || "b-red";
+              return `
+                <tr>
+                  <td>${MONTH_LABELS[r.month] || r.month}</td>
+                  <td><span class="badge ${badgeCls}">${r.category}</span></td>
+                  <td>${r.description || ""}</td>
+                  <td><strong>${formatCurrency(r.amount)}</strong></td>
+                </tr>
+              `;
+            })
+            .join("");
+
+          content.innerHTML = `
+            <div class="kpi-grid" style="grid-template-columns: 1fr">
+              <div class="kpi-card">
+                <i class="ti ti-receipt-2" style="color: #a32d2d"></i>
+                <div class="kpi-label">Tổng chi phí - Năm ${result.year}</div>
+                <div class="kpi-value">${formatCurrency(result.total)}</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <i class="ti ti-chart-pie" style="color: #a32d2d"></i>Chi phí theo nhóm
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px">
+                <div style="position: relative; height: 180px; flex: 1">
+                  <canvas id="expenseChart"></canvas>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px">
+                  ${Object.entries(byCategory)
+                    .map(
+                      ([cat, amount]) => `
+                        <div class="legend-item">
+                          <span class="ldot" style="background: ${
+                            cat === "Bảo tồn" ? "#0f6e56" : cat === "Vận hành" ? "#1a4fa0" : "#854f0b"
+                          }"></span>
+                          ${cat}: ${formatCurrency(amount)}
+                        </div>
+                      `
+                    )
+                    .join("")}
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="padding: 0; overflow: hidden">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Tháng</th>
+                    <th>Nhóm chi phí</th>
+                    <th>Nội dung</th>
+                    <th>Số tiền</th>
+                  </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+              </table>
+            </div>
+          `;
+
+          const categories = Object.keys(byCategory);
+          new Chart(document.getElementById("expenseChart"), {
+            type: "doughnut",
+            data: {
+              labels: categories,
+              datasets: [
+                {
+                  data: categories.map((c) => byCategory[c]),
+                  backgroundColor: categories.map((c) =>
+                    c === "Bảo tồn" ? "#0f6e56" : c === "Vận hành" ? "#1a4fa0" : "#854f0b"
+                  ),
+                  borderWidth: 0,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: "60%",
+              plugins: { legend: { display: false } },
+            },
+          });
+        } catch (err) {
+          content.innerHTML = `<div class="login-error">${err.message}</div>`;
+        }
+      }
+
+      (async () => {
+        const user = await renderLayout("report-expenses");
+        if (!user) return;
+
+        if (!(user.permissions || []).includes(PERMISSION)) {
+          showAccessDenied("report-content");
+          return;
+        }
+
+        const yearSelect = document.getElementById("year-select");
+        yearSelect.value = "2025";
+        yearSelect.addEventListener("change", () => loadReport(yearSelect.value));
+
+        loadReport(yearSelect.value);
+      })();
+    </script>
+  </body>
+</html>

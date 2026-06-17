@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ thống Camera & Di Sản - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack.min.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <style>
+      /* Style riêng cho trang này: GridStack + camera streams */
+      .grid-stack {
+        background: transparent;
+      }
+      .grid-stack-item-content {
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #e8e8e8;
+        overflow: hidden;
+        height: 100%;
+      }
+      .grid-stack-item > .grid-stack-item-content {
+        cursor: default;
+      }
+      .grid-stack-item.ui-draggable-dragging > .grid-stack-item-content {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        border-color: #1a4fa0;
+      }
+      .grid-stack-placeholder > .placeholder-content {
+        background: rgba(26, 79, 160, 0.08);
+        border: 2px dashed #1a4fa0;
+        border-radius: 10px;
+      }
+      .card-inner {
+        padding: 14px 16px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .cam-streams {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        flex: 1;
+      }
+      .stream-box {
+        background: #000;
+        border-radius: 6px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 500;
+        min-height: 80px;
+      }
+      .cam-tag {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+      }
+      .dot-live {
+        width: 6px;
+        height: 6px;
+        background: #22c55e;
+        border-radius: 50%;
+        animation: blink 1.5s infinite;
+      }
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+      }
+      .chart-wrap {
+        position: relative;
+        flex: 1;
+        min-height: 150px;
+      }
+      .toolbar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 10px;
+      }
+      .btn-lock {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: #1a4fa0;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .btn-lock:hover {
+        background: #153d80;
+      }
+      .btn-lock.locked {
+        background: #888;
+      }
+      .ui-resizable-se {
+        bottom: 4px !important;
+        right: 4px !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app-header"></div>
+
+    <!-- BODY -->
+    <div class="body">
+      <div class="toolbar">
+        <button class="btn-lock" id="btnLock" onclick="toggleLock()">
+          <i class="ti ti-lock-open"></i>
+          <span>Khoá bố cục</span>
+        </button>
+      </div>
+
+      <div class="grid-stack">
+        <div class="grid-stack-item" gs-x="0" gs-y="0" gs-w="4" gs-h="2">
+          <div class="grid-stack-item-content">
+            <div class="card-inner">
+              <div class="kpi-label">Tổng lượt khách hôm nay</div>
+              <div class="kpi-value" style="color: #1a4fa0">25.680 lượt</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-stack-item" gs-x="4" gs-y="0" gs-w="4" gs-h="2">
+          <div class="grid-stack-item-content">
+            <div class="card-inner">
+              <div class="kpi-label">Lượt khách cao nhất</div>
+              <div class="kpi-value" style="color: #854f0b">10:00 - 11:00 (4.320 lượt)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-stack-item" gs-x="8" gs-y="0" gs-w="4" gs-h="2">
+          <div class="grid-stack-item-content">
+            <div class="card-inner">
+              <div class="kpi-label">Tỷ lệ khách</div>
+              <div class="kpi-value" style="color: #0f6e56">Nội địa: 68.5% | Quốc tế: 31.5%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-stack-item" gs-x="0" gs-y="2" gs-w="5" gs-h="6">
+          <div class="grid-stack-item-content">
+            <div class="card-inner">
+              <div class="card-title">
+                <i class="ti ti-video" style="color: #a32d2d"></i>HÌNH ẢNH TRỰC TIẾP
+              </div>
+              <div class="cam-streams">
+                <div class="stream-box">
+                  <div class="cam-tag"><span class="dot-live"></span>1. Đại Nội</div>
+                  <span style="color: #888; font-size: 10px; z-index: 1">[Camera Live Stream]</span>
+                </div>
+                <div class="stream-box">
+                  <div class="cam-tag"><span class="dot-live"></span>2. Lăng Khải Định</div>
+                  <span style="color: #888; font-size: 10px; z-index: 1">[Camera Live Stream]</span>
+                </div>
+                <div class="stream-box">
+                  <div class="cam-tag"><span class="dot-live"></span>3. Chùa Thiên Mụ</div>
+                  <span style="color: #888; font-size: 10px; z-index: 1">[Camera Live Stream]</span>
+                </div>
+                <div class="stream-box">
+                  <div class="cam-tag"><span class="dot-live"></span>4. Lăng Tự Đức</div>
+                  <span style="color: #888; font-size: 10px; z-index: 1">[Camera Live Stream]</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-stack-item" gs-x="5" gs-y="2" gs-w="7" gs-h="6">
+          <div class="grid-stack-item-content">
+            <div class="card-inner">
+              <div class="card-title">
+                <i class="ti ti-chart-bar" style="color: #1a4fa0"></i>
+                SO SÁNH LƯỢT KHÁCH CAMERA AI VÀ VÉ BÁN THEO GIỜ
+              </div>
+              <div class="chart-wrap">
+                <canvas id="camAiChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-stack-item" gs-x="0" gs-y="8" gs-w="12" gs-h="4">
+          <div class="grid-stack-item-content">
+            <div class="card-inner" style="padding: 0">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Thời gian</th>
+                    <th>Điểm tham quan</th>
+                    <th>Số lượng khách (Camera AI)</th>
+                    <th>Số vé bán</th>
+                    <th>Chênh lệch</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>05/08/2025 - 7:30 - 16:30</td>
+                    <td>Đại Nội</td>
+                    <td><strong>4.320</strong></td>
+                    <td>3.500</td>
+                    <td style="color: #a32d2d; font-weight: 600">+820 (+23.43%)</td>
+                  </tr>
+                  <tr>
+                    <td>06/08/2025 - 7:30 - 16:30</td>
+                    <td>Lăng Khải Định</td>
+                    <td><strong>1.890</strong></td>
+                    <td>1.450</td>
+                    <td style="color: #a32d2d; font-weight: 600">+440 (+30.34%)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- end .grid-stack -->
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack-all.js"></script>
+
+    <script>
+      renderLayout("heritage");
+
+      const grid = GridStack.init({
+        column: 12,
+        cellHeight: 60,
+        margin: 8,
+        resizable: { handles: "se" },
+        animate: true,
+      });
+
+      new Chart(document.getElementById("camAiChart"), {
+        type: "bar",
+        data: {
+          labels: ["09:00", "10:00", "11:00", "12:00", "13:00"],
+          datasets: [
+            { label: "Khách Đếm AI", data: [2850, 4320, 3860, 2950, 2150], backgroundColor: "#1a4fa0" },
+            { label: "Vé Bán Ra", data: [2200, 3500, 3100, 2400, 1800], backgroundColor: "#f5c518" },
+          ],
+        },
+        options: { responsive: true, maintainAspectRatio: false },
+      });
+
+      let isLocked = false;
+      function toggleLock() {
+        isLocked = !isLocked;
+        const btn = document.getElementById("btnLock");
+        if (isLocked) {
+          grid.disable();
+          btn.innerHTML = '<i class="ti ti-lock"></i><span>Mở bố cục</span>';
+          btn.classList.add("locked");
+        } else {
+          grid.enable();
+          btn.innerHTML = '<i class="ti ti-lock-open"></i><span>Khoá bố cục</span>';
+          btn.classList.remove("locked");
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,187 @@
+@{
+    ViewData["Title"] = "Quản lý vé - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế";
+    Layout = "_Layout";
+}
+
+<div class="kpi-grid-4">
+  <div class="kpi-card">
+    <i class="ti ti-ticket" style="color: #1a4fa0"></i>
+    <div class="kpi-label">Tổng vé bán ra (Tháng này)</div>
+    <div class="kpi-value">12.450</div>
+    <div class="kpi-unit">vé</div>
+  </div>
+  <div class="kpi-card">
+    <i class="ti ti-user-check" style="color: #0f6e56"></i>
+    <div class="kpi-label">Vé người lớn</div>
+    <div class="kpi-value">6.840</div>
+    <div class="kpi-unit">vé (55%)</div>
+  </div>
+  <div class="kpi-card">
+    <i class="ti ti-user" style="color: #854f0b"></i>
+    <div class="kpi-label">Vé trẻ em</div>
+    <div class="kpi-value">3.735</div>
+    <div class="kpi-unit">vé (30%)</div>
+  </div>
+  <div class="kpi-card">
+    <i class="ti ti-id" style="color: #533ab7"></i>
+    <div class="kpi-label">Vé ưu tiên / Nước ngoài</div>
+    <div class="kpi-value">1.875</div>
+    <div class="kpi-unit">vé (15%)</div>
+  </div>
+</div>
+
+<div class="charts-row-2" style="grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px;">
+  
+  <div class="card-nm">
+    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <span><i class="ti ti-chart-bar" style="color: #1a4fa0;"></i> SỐ LƯỢNG VÉ BÁN THEO ĐIỂM DI TÍCH VÀ ĐỐI TƯỢNG</span>
+      <div class="legend-row" style="margin-bottom: 0;">
+        <span class="legend-item"><span class="ldot" style="background: #1a4fa0;"></span>Người lớn</span>
+        <span class="legend-item"><span class="ldot" style="background: #f5c518;"></span>Trẻ em</span>
+        <span class="legend-item"><span class="ldot" style="background: #e07b39;"></span>Ưu tiên</span>
+      </div>
+    </div>
+    <div style="position: relative; height: 210px; margin-top: 15px;">
+      <canvas id="ticketLocationChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card-nm">
+    <div class="card-title"><i class="ti ti-chart-pie" style="color: #0f6e56;"></i> TRẠNG THÁI VẬN HÀNH VÉ</div>
+    <div style="position: relative; height: 150px; margin-top: 10px; margin-bottom: 10px;">
+      <canvas id="ticketStatusChart"></canvas>
+    </div>
+    <div style="font-size: 11px; color: #555; display: flex; flex-direction: column; gap: 5px;">
+      <div class="legend-item"><span class="ldot" style="background: #0f6e56"></span>Chưa sử dụng: 65%</div>
+      <div class="legend-item"><span class="ldot" style="background: #666"></span>Đã sử dụng: 25%</div>
+      <div class="legend-item"><span class="ldot" style="background: #a32d2d"></span>Đã hoàn trả: 10%</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="filter-bar">
+  <select>
+    <option>Tất cả loại vé</option>
+    <option>Vé Người Lớn</option>
+    <option>Vé Trẻ Em</option>
+    <option>Vé Ưu Tiên</option>
+  </select>
+  <select>
+    <option>Tất cả trạng thái</option>
+    <option>Chưa sử dụng</option>
+    <option>Đã sử dụng</option>
+    <option>Đã hoàn trả</option>
+  </select>
+  <input type="text" placeholder="Nhập mã vé hoặc tên khách..." style="flex: 1; max-width: 250px" />
+  <button class="btn-action btn-blue"><i class="ti ti-search"></i> Tìm kiếm</button>
+</div>
+
+<div class="card-nm" style="padding: 0; overflow: hidden;">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Mã Vé</th>
+        <th>Loại Vé</th>
+        <th>Giá Vé (đồng)</th>
+        <th>Ngày Bán</th>
+        <th>Điểm Tham Quan</th>
+        <th>Trạng Thái</th>
+        <th style="text-align: center">Thao Tác</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>VE-2026-001</strong></td>
+        <td><span class="badge b-blue">Người Lớn</span></td>
+        <td><strong>150.000</strong></td>
+        <td>16/06/2026</td>
+        <td>Đại Nội Huế</td>
+        <td><span class="badge b-green">Chưa sử dụng</span></td>
+        <td class="action-icons" style="text-align: center">
+          <i class="ti ti-qrcode" title="Quét mã"></i><i class="ti ti-pencil" style="color: #854f0b" title="Sửa"></i><i class="ti ti-trash" style="color: #a32d2d" title="Hủy vé"></i>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>VE-2026-002</strong></td>
+        <td><span class="badge b-amber">Trẻ Em</span></td>
+        <td><strong>30.000</strong></td>
+        <td>16/06/2026</td>
+        <td>Lăng Khải Định</td>
+        <td><span class="badge b-gray">Đã sử dụng</span></td>
+        <td class="action-icons" style="text-align: center">
+          <i class="ti ti-qrcode"></i><i class="ti ti-pencil" style="color: #854f0b"></i><i class="ti ti-trash" style="color: #a32d2d"></i>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>VE-2026-003</strong></td>
+        <td><span class="badge b-blue">Người Lớn</span></td>
+        <td><strong>150.000</strong></td>
+        <td>15/06/2026</td>
+        <td>Lăng Minh Mạng</td>
+        <td><span class="badge b-green">Chưa sử dụng</span></td>
+        <td class="action-icons" style="text-align: center">
+          <i class="ti ti-qrcode"></i><i class="ti ti-pencil" style="color: #854f0b"></i><i class="ti ti-trash" style="color: #a32d2d"></i>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>VE-2026-004</strong></td>
+        <td><span class="badge b-red">Ưu Tiên</span></td>
+        <td><strong>75.000</strong></td>
+        <td>15/06/2026</td>
+        <td>Đại Nội Huế</td>
+        <td><span class="badge b-red">Đã hoàn trả</span></td>
+        <td class="action-icons" style="text-align: center">
+          <i class="ti ti-qrcode"></i><i class="ti ti-pencil" style="color: #854f0b"></i><i class="ti ti-trash" style="color: #a32d2d"></i>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const tcColor = "#999";
+  const gridColor = "rgba(0,0,0,0.05)";
+
+  // 1. Biểu đồ nhóm cột (Grouped Bar Chart) phân tích theo điểm tham quan di sản
+  new Chart(document.getElementById("ticketLocationChart"), {
+    type: "bar",
+    data: {
+      labels: ["Đại Nội Huế", "Lăng Khải Định", "Lăng Minh Mạng", "Lăng Tự Đức"],
+      datasets: [
+        { label: "Người lớn", data: [3400, 1500, 1200, 740], backgroundColor: "#1a4fa0", borderRadius: 2 },
+        { label: "Trẻ em", data: [1800, 950, 600, 385], backgroundColor: "#f5c518", borderRadius: 2 },
+        { label: "Ưu tiên", data: [980, 420, 310, 165], backgroundColor: "#e07b39", borderRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tcColor, font: { size: 10 } } },
+        y: { grid: { color: gridColor }, ticks: { color: tcColor, font: { size: 10 } } }
+      }
+    }
+  });
+
+  // 2. Biểu đồ Nhẫn (Doughnut Chart) thống kê trạng thái vé phục vụ điều hành
+  new Chart(document.getElementById("ticketStatusChart"), {
+    type: "doughnut",
+    data: {
+      labels: ["Chưa sử dụng", "Đã sử dụng", "Đã hoàn trả"],
+      datasets: [{
+        data: [65, 25, 10],
+        backgroundColor: ["#0f6e56", "#666666", "#a32d2d"],
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "65%",
+      plugins: { legend: { display: false } }
+    }
+  });
+</script>

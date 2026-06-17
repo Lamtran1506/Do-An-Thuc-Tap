@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý vé tham quan - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="app-header"></div>
+
+    <div class="body">
+      <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr)">
+        <div class="kpi-card">
+          <i class="ti ti-ticket" style="color: #1a4fa0"></i>
+          <div class="kpi-label">Tổng số vé bán</div>
+          <div class="kpi-value">12.458 vé</div>
+          <div class="kpi-unit" style="color: #0f6e56">▲ 12.5% so với tháng trước</div>
+        </div>
+        <div class="kpi-card">
+          <i class="ti ti-user" style="color: #0f6e56"></i>
+          <div class="kpi-label">Vé người lớn</div>
+          <div class="kpi-value">6.732 vé</div>
+          <div class="kpi-unit" style="color: #0f6e56">▲ 10.2% so với tháng trước</div>
+        </div>
+        <div class="kpi-card">
+          <i class="ti ti-mood-kid" style="color: #854f0b"></i>
+          <div class="kpi-label">Vé trẻ em</div>
+          <div class="kpi-value">4.125 vé</div>
+          <div class="kpi-unit" style="color: #0f6e56">▲ 8.7% so với tháng trước</div>
+        </div>
+        <div class="kpi-card">
+          <i class="ti ti-award" style="color: #533ab7"></i>
+          <div class="kpi-label">Vé ưu tiên</div>
+          <div class="kpi-value">1.601 vé</div>
+          <div class="kpi-unit" style="color: #0f6e56">▲ 15.3% so với tháng trước</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <i class="ti ti-chart-bar" style="color: #1a4fa0"></i>SỐ LƯỢNG VÉ VÀ DOANH THU THEO LOẠI VÉ
+        </div>
+        <div style="position: relative; height: 200px">
+          <canvas id="ticketMixedChart"></canvas>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input type="text" placeholder="Tìm kiếm mã vé, loại vé..." style="flex: 1; max-width: 250px" />
+        <select>
+          <option>Tất cả loại vé</option>
+        </select>
+        <select>
+          <option>Tất cả điểm bán</option>
+        </select>
+        <input type="date" value="2024-05-31" />
+      </div>
+
+      <div class="card" style="padding: 0; overflow: hidden">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Mã vé</th>
+              <th>Loại vé</th>
+              <th>Giá vé (VND)</th>
+              <th>Ngày bán</th>
+              <th>Điểm bán</th>
+              <th>Nhân viên bán</th>
+              <th style="text-align: center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>VE00001</td>
+              <td><span class="badge b-blue">Người lớn</span></td>
+              <td>150.000</td>
+              <td>31/05/2024 10:15</td>
+              <td>Cổng chính</td>
+              <td>Nguyễn Văn A</td>
+              <td class="action-icons" style="text-align: center">
+                <i class="ti ti-eye"></i><i class="ti ti-pencil" style="color: #854f0b"></i><i class="ti ti-trash" style="color: #a32d2d"></i>
+              </td>
+            </tr>
+            <tr>
+              <td>VE00002</td>
+              <td><span class="badge b-green">Trẻ em</span></td>
+              <td>80.000</td>
+              <td>31/05/2024 10:20</td>
+              <td>Cổng chính</td>
+              <td>Trần Thị B</td>
+              <td class="action-icons" style="text-align: center">
+                <i class="ti ti-eye"></i><i class="ti ti-pencil" style="color: #854f0b"></i><i class="ti ti-trash" style="color: #a32d2d"></i>
+              </td>
+            </tr>
+            <tr>
+              <td>VE00003</td>
+              <td><span class="badge b-amber">Ưu tiên</span></td>
+              <td>120.000</td>
+              <td>31/05/2024 10:25</td>
+              <td>Quầy số 2</td>
+              <td>Lê Văn C</td>
+              <td class="action-icons" style="text-align: center">
+                <i class="ti ti-eye"></i><i class="ti ti-pencil" style="color: #854f0b"></i><i class="ti ti-trash" style="color: #a32d2d"></i>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/layout.js"></script>
+    <script>
+      renderLayout("tickets");
+
+      new Chart(document.getElementById("ticketMixedChart"), {
+        type: "bar",
+        data: {
+          labels: ["Người lớn", "Trẻ em", "Ưu tiên"],
+          datasets: [
+            { label: "Số lượng vé (vé)", data: [6732, 4125, 1601], backgroundColor: "#1a4fa0", yAxisID: "y" },
+            { label: "Doanh thu (VND)", data: [94248000, 41250000, 24015000], backgroundColor: "#f5c518", yAxisID: "y1" },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { type: "linear", position: "left" },
+            y1: { type: "linear", position: "right", grid: { display: false } },
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

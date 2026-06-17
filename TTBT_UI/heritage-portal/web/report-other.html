@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doanh thu dịch vụ khác - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="app-header"></div>
+
+    <div class="body">
+      <div class="filter-bar">
+        <label style="font-size: 12px; color: #666">Năm báo cáo:</label>
+        <select id="year-select">
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+        </select>
+      </div>
+
+      <div id="report-content">
+        <div style="padding: 20px; color: #888">Đang tải báo cáo...</div>
+      </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/layout.js"></script>
+    <script>
+      const PERMISSION = "view_report_other";
+      const MONTH_LABELS = {
+        1: "Tháng 1", 2: "Tháng 2", 3: "Tháng 3", 4: "Tháng 4",
+        5: "Tháng 5", 6: "Tháng 6", 7: "Tháng 7", 8: "Tháng 8",
+        9: "Tháng 9", 10: "Tháng 10", 11: "Tháng 11", 12: "Tháng 12",
+      };
+
+      async function loadReport(year) {
+        const content = document.getElementById("report-content");
+        content.innerHTML = `<div style="padding: 20px; color: #888">Đang tải báo cáo...</div>`;
+
+        try {
+          const result = await apiFetch(`/reports/other-revenue?year=${year}`);
+          const rows = result.data;
+
+          const tableRows = rows
+            .map(
+              (r) => `
+                <tr>
+                  <td>${MONTH_LABELS[r.month] || r.month}</td>
+                  <td><span class="badge b-amber">${r.category}</span></td>
+                  <td><strong>${formatCurrency(r.amount)}</strong></td>
+                </tr>
+              `
+            )
+            .join("");
+
+          content.innerHTML = `
+            <div class="kpi-grid" style="grid-template-columns: 1fr">
+              <div class="kpi-card">
+                <i class="ti ti-building-store" style="color: #854f0b"></i>
+                <div class="kpi-label">Tổng doanh thu dịch vụ khác - Năm ${result.year}</div>
+                <div class="kpi-value">${formatCurrency(result.total)}</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <i class="ti ti-chart-bar" style="color: #854f0b"></i>Doanh thu dịch vụ khác theo tháng
+              </div>
+              <div style="position: relative; height: 220px">
+                <canvas id="otherChart"></canvas>
+              </div>
+            </div>
+
+            <div class="card" style="padding: 0; overflow: hidden">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Tháng</th>
+                    <th>Loại dịch vụ</th>
+                    <th>Doanh thu</th>
+                  </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+              </table>
+            </div>
+          `;
+
+          new Chart(document.getElementById("otherChart"), {
+            type: "bar",
+            data: {
+              labels: rows.map((r) => MONTH_LABELS[r.month] || r.month),
+              datasets: [
+                { label: "Doanh thu dịch vụ khác", data: rows.map((r) => Number(r.amount)), backgroundColor: "#f5c518", borderRadius: 3 },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+            },
+          });
+        } catch (err) {
+          content.innerHTML = `<div class="login-error">${err.message}</div>`;
+        }
+      }
+
+      (async () => {
+        const user = await renderLayout("report-other");
+        if (!user) return;
+
+        if (!(user.permissions || []).includes(PERMISSION)) {
+          showAccessDenied("report-content");
+          return;
+        }
+
+        const yearSelect = document.getElementById("year-select");
+        yearSelect.value = "2025";
+        yearSelect.addEventListener("change", () => loadReport(yearSelect.value));
+
+        loadReport(yearSelect.value);
+      })();
+    </script>
+  </body>
+</html>

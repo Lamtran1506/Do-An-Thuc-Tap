@@ -1,0 +1,12 @@
+{
+  "name": "heritage-portal-web",
+  "version": "1.0.0",
+  "description": "Frontend HTML/CSS/JS cho Cong thong tin dien tu - TT Bao ton Di tich Co do Hue",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve -l 3000"
+  },
+  "devDependencies": {
+    "serve": "11.2.0"
+  }
+}

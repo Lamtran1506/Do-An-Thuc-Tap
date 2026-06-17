@@ -1,0 +1,215 @@
+@{
+    ViewData["Title"] = "Sổ hồ sơ di sản - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế";
+    Layout = "_Layout";
+}
+
+<div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+  <button id="btnLockLayout" class="btn-action btn-blue" style="background: #1a4fa0; gap: 6px; padding: 8px 14px;">
+    <i class="ti ti-lock"></i> <span id="textLockLayout">Khóa bố cục</span>
+  </button>
+</div>
+
+<div id="alertLockStatus" class="alert alert-success" style="display: none; margin-bottom: 16px;">
+  <i class="ti ti-shield-check"></i> Bố cục di sản đã được khóa an toàn. Các thao tác chỉnh sửa/can thiệp tạm thời bị đóng.
+</div>
+
+<div class="kpi-grid-4">
+  <div class="kpi-card">
+    <i class="ti ti-building-fortress" style="color: #1a4fa0"></i>
+    <div class="kpi-label">Tổng số di sản kiểm kê</div>
+    <div class="kpi-value">10.000</div>
+    <div class="kpi-unit">hồ sơ</div>
+  </div>
+  <div class="kpi-card">
+    <i class="ti ti-checkbox" style="color: #0f6e56"></i>
+    <div class="kpi-label">Đã hoàn thành số hóa</div>
+    <div class="kpi-value">500 / 10.000</div>
+    <div class="kpi-unit">hồ sơ (5%)</div>
+  </div>
+  <div class="kpi-card">
+    <i class="ti ti-progress-alert" style="color: #854f0b"></i>
+    <div class="kpi-label">Di sản đang trùng tu / TH</div>
+    <div class="kpi-value">12</div>
+    <div class="kpi-unit">công trình kiến trúc</div>
+  </div>
+  <div class="kpi-card">
+    <i class="ti ti-alert-triangle" style="color: #a32d2d"></i>
+    <div class="kpi-label">Hồ sơ chờ phê duyệt</div>
+    <div class="kpi-value">45</div>
+    <div class="kpi-unit">hồ sơ đề xuất</div>
+  </div>
+</div>
+
+<div class="charts-row-2" style="grid-template-columns: 1.2fr 1.8fr; gap: 16px; margin-bottom: 16px;">
+  
+  <div class="card-nm layout-component" id="cameraSection">
+    <div class="card-title" style="color: #a32d2d;">
+      <i class="ti ti-video"></i> HÌNH ẢNH TRỰC TIẾP CAMERA AI
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+      <div style="background: #000; border-radius: 6px; aspect-ratio: 16/10; padding: 10px; position: relative; border: 1px solid #333;">
+        <span style="color: #2ed573; font-size: 11px; font-weight: 600; display: block;"><i class="ti ti-point-filled"></i> 1. Đại Nội</span>
+        <div style="color: #555; font-size: 11px; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">[Camera Live Stream]</div>
+      </div>
+      <div style="background: #000; border-radius: 6px; aspect-ratio: 16/10; padding: 10px; position: relative; border: 1px solid #333;">
+        <span style="color: #2ed573; font-size: 11px; font-weight: 600; display: block;"><i class="ti ti-point-filled"></i> 2. Lăng Khải Định</span>
+        <div style="color: #555; font-size: 11px; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">[Camera Live Stream]</div>
+      </div>
+      <div style="background: #000; border-radius: 6px; aspect-ratio: 16/10; padding: 10px; position: relative; border: 1px solid #333;">
+        <span style="color: #2ed573; font-size: 11px; font-weight: 600; display: block;"><i class="ti ti-point-filled"></i> 3. Chùa Thiên Mụ</span>
+        <div style="color: #555; font-size: 11px; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">[Camera Live Stream]</div>
+      </div>
+      <div style="background: #000; border-radius: 6px; aspect-ratio: 16/10; padding: 10px; position: relative; border: 1px solid #333;">
+        <span style="color: #2ed573; font-size: 11px; font-weight: 600; display: block;"><i class="ti ti-point-filled"></i> 4. Lăng Tự Đức</span>
+        <div style="color: #555; font-size: 11px; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">[Camera Live Stream]</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-nm">
+    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <span><i class="ti ti-chart-bar" style="color: #1a4fa0;"></i> SO SÁNH LƯỢT KHÁCH CAMERA AI VÀ VÉ BÁN THEO GIỜ</span>
+      <div class="legend-row" style="margin-bottom: 0;">
+        <span class="legend-item"><span class="ldot" style="background: #1a4fa0;"></span>Khách Đếm AI</span>
+        <span class="legend-item"><span class="ldot" style="background: #f5c518;"></span>Vé Bán Ra</span>
+      </div>
+    </div>
+    <div style="position: relative; height: 210px; margin-top: 15px;">
+      <canvas id="heritageHourChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <select>
+    <option>Tất cả quần thể</option>
+    <option>Quần thể Di tích Kinh Thành</option>
+    <option>Hệ thống Lăng tẩm Hoàng gia</option>
+  </select>
+  <select>
+    <option>Tất cả loại hình</option>
+    <option>Kiến trúc cung đình</option>
+    <option>Kiến trúc lăng tẩm</option>
+  </select>
+  <input type="text" placeholder="Nhập tên di sản, triều đại hoặc mã số..." style="flex: 1; max-width: 250px" />
+  <button class="btn-action btn-blue"><i class="ti ti-search"></i> Tra cứu</button>
+</div>
+
+<div class="card-nm" style="padding: 0; overflow: hidden;">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Mã Di Sản</th>
+        <th>Tên Di Sản / Công Trình</th>
+        <th>Loại Hình</th>
+        <th>Thời Kỳ / Niên Đại</th>
+        <th>Vị Trí Phân Bố</th>
+        <th>Tình Trạng Bảo Tồn</th>
+        <th class="action-column" style="text-align: center; width: 100px;">Thao Tác</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>DS-ĐN-001</strong></td>
+        <td>Ngọ Môn (Đại Nội)</td>
+        <td><span class="badge b-blue-light">Kiến trúc Cung đình</span></td>
+        <td>Triều Nguyễn (Kỷ Sửu 1829)</td>
+        <td>Kinh thành Huế</td>
+        <td><span class="badge b-green">Ổn định / Đã số hóa</span></td>
+        <td class="action-icons action-column" style="text-align: center;">
+          <i class="ti ti-folder" title="Xem hồ sơ"></i><i class="ti ti-pencil" style="color: #854f0b"></i><i class="ti ti-trash" style="color: #a32d2d"></i>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>DS-LT-014</strong></td>
+        <td>Điện Kiến Trung</td>
+        <td><span class="badge b-blue-light">Kiến trúc Cung đình</span></td>
+        <td>Khải Định (1921 - 1923)</td>
+        <td>Tử Cấm Thành</td>
+        <td><span class="badge b-blue">Đã phục dựng / Đang TH</span></td>
+        <td class="action-icons action-column" style="text-align: center;">
+          <i class="ti ti-folder"></i><i class="ti ti-pencil" style="color: #854f0b"></i><i class="ti ti-trash" style="color: #a32d2d"></i>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>DS-LT-005</strong></td>
+        <td>Hiển Lâm Các</td>
+        <td><span class="badge b-blue-light">Kiến trúc Cung đình</span></td>
+        <td>Minh Mạng (Nhâm Ngọ 1822)</td>
+        <td>Hoàng Thành Huế</td>
+        <td><span class="badge b-green">Đang TH số hóa</span></td>
+        <td class="action-icons action-column" style="text-align: center;">
+          <i class="ti ti-folder"></i><i class="ti ti-pencil" style="color: #854f0b"></i><i class="ti ti-trash" style="color: #a32d2d"></i>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // 1. Logic vẽ biểu đồ đôi giám sát camera theo giờ tại điểm di sản
+  new Chart(document.getElementById("heritageHourChart"), {
+    type: "bar",
+    data: {
+      labels: ["09:00", "10:00", "11:00", "12:00", "13:00"],
+      datasets: [
+        { label: "Khách Đếm AI", data: [2850, 4320, 3850, 2950, 2150], backgroundColor: "#1a4fa0", borderRadius: 2 },
+        { label: "Vé Bán Ra", data: [2200, 3500, 3100, 2400, 1800], backgroundColor: "#f5c518", borderRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: "#999", font: { size: 10 } } },
+        y: { min: 0, max: 4500, ticks: { stepSize: 1000, color: "#999", font: { size: 10 } }, grid: { color: "rgba(0,0,0,0.06)" } }
+      }
+    }
+  });
+
+  // 2. Logic điều khiển Khóa / Mở khóa bố cục giao diện mượt mà (Tối ưu hóa UX)
+  document.addEventListener("DOMContentLoaded", function () {
+    const btnLock = document.getElementById("btnLockLayout");
+    const textLock = document.getElementById("textLockLayout");
+    const alertStatus = document.getElementById("alertLockStatus");
+    const actionColumns = document.querySelectorAll(".action-column");
+    
+    let isLocked = localStorage.getItem("heritageLayoutLocked") === "true";
+    
+    function applyLayoutState(locked) {
+      if (locked) {
+        btnLock.style.background = "#666";
+        btnLock.innerHTML = '<i class="ti ti-lock-open"></i> <span>Mở khóa bố cục</span>';
+        alertStatus.style.background = "#faf0f0";
+        alertStatus.style.color = "#a32d2d";
+        alertStatus.style.borderColor = "#f4c0c0";
+        alertStatus.innerHTML = '<i class="ti ti-lock"></i> Bố cục sổ di sản đã được khóa cố định. Các nút hiệu chỉnh đã ẩn để bảo mật giao diện.';
+        alertStatus.style.display = "flex";
+        
+        // Tối ưu hóa UX: Ẩn biểu tượng tinh tế, giữ nguyên cấu trúc bảng không bị lệch dòng
+        actionColumns.forEach(col => {
+          col.style.opacity = "0";
+          col.style.pointerEvents = "none";
+        });
+      } else {
+        btnLock.style.background = "#1a4fa0";
+        btnLock.innerHTML = '<i class="ti ti-lock"></i> <span>Khóa bố cục</span>';
+        alertStatus.style.display = "none";
+        
+        actionColumns.forEach(col => {
+          col.style.opacity = "1";
+          col.style.pointerEvents = "auto";
+        });
+      }
+    }
+    
+    applyLayoutState(isLocked);
+    
+    btnLock.addEventListener("click", function () {
+      isLocked = !isLocked;
+      localStorage.setItem("heritageLayoutLocked", isLocked);
+      applyLayoutState(isLocked);
+    });
+  });
+</script>

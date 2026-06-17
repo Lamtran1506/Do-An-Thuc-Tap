@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Báo cáo dự án bảo tồn - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="app-header"></div>
+
+    <div class="body">
+      <div id="report-content">
+        <div style="padding: 20px; color: #888">Đang tải báo cáo...</div>
+      </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/layout.js"></script>
+    <script>
+      const PERMISSION = "view_report_project";
+      const STATUS_BADGE = {
+        "Đang thực hiện": "b-green",
+        "Chờ duyệt": "b-amber",
+        "Lên kế hoạch": "b-blue",
+      };
+
+      async function loadReport() {
+        const content = document.getElementById("report-content");
+        content.innerHTML = `<div style="padding: 20px; color: #888">Đang tải báo cáo...</div>`;
+
+        try {
+          const projects = await apiFetch(`/reports/projects`);
+
+          const totalBudget = projects.reduce((sum, p) => sum + Number(p.budget), 0);
+          const totalSpent = projects.reduce((sum, p) => sum + Number(p.spent), 0);
+
+          const rows = projects
+            .map((p) => {
+              const percent = p.budget > 0 ? Math.round((Number(p.spent) / Number(p.budget)) * 100) : 0;
+              const badgeCls = STATUS_BADGE[p.status] || "b-blue";
+              return `
+                <tr>
+                  <td>${p.name}</td>
+                  <td><span class="badge ${badgeCls}">${p.status}</span></td>
+                  <td>${formatCurrency(p.budget)}</td>
+                  <td>${formatCurrency(p.spent)}</td>
+                  <td style="min-width: 160px">
+                    <div class="cam-bar-wrap">
+                      <div class="cam-bar" style="width: ${percent}%"></div>
+                    </div>
+                    <div style="font-size: 11px; color: #666; margin-top: 4px">${percent}%</div>
+                  </td>
+                </tr>
+              `;
+            })
+            .join("");
+
+          content.innerHTML = `
+            <div class="kpi-grid" style="grid-template-columns: repeat(2, 1fr)">
+              <div class="kpi-card">
+                <i class="ti ti-building" style="color: #1a4fa0"></i>
+                <div class="kpi-label">Tổng ngân sách các dự án</div>
+                <div class="kpi-value">${formatCurrency(totalBudget)}</div>
+              </div>
+              <div class="kpi-card">
+                <i class="ti ti-cash" style="color: #a32d2d"></i>
+                <div class="kpi-label">Tổng đã chi</div>
+                <div class="kpi-value">${formatCurrency(totalSpent)}</div>
+              </div>
+            </div>
+
+            <div class="card" style="padding: 0; overflow: hidden">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Dự án</th>
+                    <th>Tình trạng</th>
+                    <th>Ngân sách</th>
+                    <th>Đã chi</th>
+                    <th>Tiến độ chi</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>
+          `;
+        } catch (err) {
+          content.innerHTML = `<div class="login-error">${err.message}</div>`;
+        }
+      }
+
+      (async () => {
+        const user = await renderLayout("report-projects");
+        if (!user) return;
+
+        if (!(user.permissions || []).includes(PERMISSION)) {
+          showAccessDenied("report-content");
+          return;
+        }
+
+        loadReport();
+      })();
+    </script>
+  </body>
+</html>

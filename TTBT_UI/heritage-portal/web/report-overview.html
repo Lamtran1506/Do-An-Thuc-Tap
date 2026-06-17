@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tổng quan thu chi - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="app-header"></div>
+
+    <div class="body">
+      <div class="filter-bar">
+        <label style="font-size: 12px; color: #666">Năm báo cáo:</label>
+        <select id="year-select">
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+        </select>
+      </div>
+
+      <div id="report-content">
+        <div style="padding: 20px; color: #888">Đang tải báo cáo...</div>
+      </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/layout.js"></script>
+    <script>
+      const PERMISSION = "view_report_overview";
+      let user;
+
+      async function loadReport(year) {
+        const content = document.getElementById("report-content");
+        content.innerHTML = `<div style="padding: 20px; color: #888">Đang tải báo cáo...</div>`;
+
+        try {
+          const data = await apiFetch(`/reports/overview?year=${year}`);
+
+          content.innerHTML = `
+            <div class="kpi-grid" style="grid-template-columns: repeat(5, 1fr)">
+              <div class="kpi-card">
+                <i class="ti ti-ticket" style="color: #0f6e56"></i>
+                <div class="kpi-label">Doanh thu bán vé</div>
+                <div class="kpi-value">${formatCurrency(data.totalTicketRevenue)}</div>
+              </div>
+              <div class="kpi-card">
+                <i class="ti ti-building-store" style="color: #854f0b"></i>
+                <div class="kpi-label">Doanh thu dịch vụ khác</div>
+                <div class="kpi-value">${formatCurrency(data.totalOtherRevenue)}</div>
+              </div>
+              <div class="kpi-card">
+                <i class="ti ti-coin" style="color: #185fa5"></i>
+                <div class="kpi-label">Tổng doanh thu</div>
+                <div class="kpi-value">${formatCurrency(data.totalRevenue)}</div>
+              </div>
+              <div class="kpi-card">
+                <i class="ti ti-receipt-2" style="color: #a32d2d"></i>
+                <div class="kpi-label">Tổng chi phí</div>
+                <div class="kpi-value">${formatCurrency(data.totalExpense)}</div>
+              </div>
+              <div class="kpi-card">
+                <i class="ti ti-report-money" style="color: #0f6e56"></i>
+                <div class="kpi-label">Lợi nhuận</div>
+                <div class="kpi-value" style="color: #0f6e56">${formatCurrency(data.profit)}</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <i class="ti ti-chart-bar" style="color: #1a4fa0"></i>
+                So sánh doanh thu và chi phí - Năm ${data.year}
+              </div>
+              <div style="position: relative; height: 220px">
+                <canvas id="overviewChart"></canvas>
+              </div>
+            </div>
+          `;
+
+          new Chart(document.getElementById("overviewChart"), {
+            type: "bar",
+            data: {
+              labels: ["Doanh thu bán vé", "Doanh thu dịch vụ khác", "Tổng chi phí", "Lợi nhuận"],
+              datasets: [
+                {
+                  label: "Số tiền (đồng)",
+                  data: [data.totalTicketRevenue, data.totalOtherRevenue, data.totalExpense, data.profit],
+                  backgroundColor: ["#1a4fa0", "#f5c518", "#a32d2d", "#0f6e56"],
+                  borderRadius: 3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+            },
+          });
+        } catch (err) {
+          content.innerHTML = `<div class="login-error">${err.message}</div>`;
+        }
+      }
+
+      (async () => {
+        user = await renderLayout("report-overview");
+        if (!user) return;
+
+        if (!(user.permissions || []).includes(PERMISSION)) {
+          showAccessDenied("report-content");
+          return;
+        }
+
+        const yearSelect = document.getElementById("year-select");
+        yearSelect.value = "2025";
+        yearSelect.addEventListener("change", () => loadReport(yearSelect.value));
+
+        loadReport(yearSelect.value);
+      })();
+    </script>
+  </body>
+</html>

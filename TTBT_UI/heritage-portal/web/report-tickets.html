@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doanh thu bán vé - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="app-header"></div>
+
+    <div class="body">
+      <div class="filter-bar">
+        <label style="font-size: 12px; color: #666">Năm báo cáo:</label>
+        <select id="year-select">
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+        </select>
+      </div>
+
+      <div id="report-content">
+        <div style="padding: 20px; color: #888">Đang tải báo cáo...</div>
+      </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/layout.js"></script>
+    <script>
+      const PERMISSION = "view_report_ticket";
+      const MONTH_LABELS = {
+        1: "Tháng 1", 2: "Tháng 2", 3: "Tháng 3", 4: "Tháng 4",
+        5: "Tháng 5", 6: "Tháng 6", 7: "Tháng 7", 8: "Tháng 8",
+        9: "Tháng 9", 10: "Tháng 10", 11: "Tháng 11", 12: "Tháng 12",
+      };
+
+      async function loadReport(year) {
+        const content = document.getElementById("report-content");
+        content.innerHTML = `<div style="padding: 20px; color: #888">Đang tải báo cáo...</div>`;
+
+        try {
+          const result = await apiFetch(`/reports/ticket-revenue?year=${year}`);
+          const rows = result.data;
+
+          const tableRows = rows
+            .map((r) => {
+              const total =
+                Number(r.adult_revenue) + Number(r.child_revenue) + Number(r.priority_revenue);
+              return `
+                <tr>
+                  <td>${MONTH_LABELS[r.month] || r.month}</td>
+                  <td>${Number(r.adult_count).toLocaleString("vi-VN")}</td>
+                  <td>${formatCurrency(r.adult_revenue)}</td>
+                  <td>${Number(r.child_count).toLocaleString("vi-VN")}</td>
+                  <td>${formatCurrency(r.child_revenue)}</td>
+                  <td>${Number(r.priority_count).toLocaleString("vi-VN")}</td>
+                  <td>${formatCurrency(r.priority_revenue)}</td>
+                  <td><strong>${formatCurrency(total)}</strong></td>
+                </tr>
+              `;
+            })
+            .join("");
+
+          content.innerHTML = `
+            <div class="kpi-grid" style="grid-template-columns: 1fr">
+              <div class="kpi-card">
+                <i class="ti ti-ticket" style="color: #0f6e56"></i>
+                <div class="kpi-label">Tổng doanh thu bán vé - Năm ${result.year}</div>
+                <div class="kpi-value">${formatCurrency(result.total)}</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <i class="ti ti-chart-bar" style="color: #1a4fa0"></i>Doanh thu bán vé theo tháng
+              </div>
+              <div class="legend-row">
+                <span class="legend-item"><span class="ldot" style="background: #1a4fa0"></span>Người lớn</span>
+                <span class="legend-item"><span class="ldot" style="background: #f5c518"></span>Trẻ em</span>
+                <span class="legend-item"><span class="ldot" style="background: #bbb"></span>Ưu tiên</span>
+              </div>
+              <div style="position: relative; height: 220px">
+                <canvas id="ticketChart"></canvas>
+              </div>
+            </div>
+
+            <div class="card" style="padding: 0; overflow: hidden">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Tháng</th>
+                    <th>SL vé người lớn</th>
+                    <th>Doanh thu người lớn</th>
+                    <th>SL vé trẻ em</th>
+                    <th>Doanh thu trẻ em</th>
+                    <th>SL vé ưu tiên</th>
+                    <th>Doanh thu ưu tiên</th>
+                    <th>Tổng cộng</th>
+                  </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+              </table>
+            </div>
+          `;
+
+          new Chart(document.getElementById("ticketChart"), {
+            type: "bar",
+            data: {
+              labels: rows.map((r) => MONTH_LABELS[r.month] || r.month),
+              datasets: [
+                { label: "Người lớn", data: rows.map((r) => Number(r.adult_revenue)), backgroundColor: "#1a4fa0", borderRadius: 3 },
+                { label: "Trẻ em", data: rows.map((r) => Number(r.child_revenue)), backgroundColor: "#f5c518", borderRadius: 3 },
+                { label: "Ưu tiên", data: rows.map((r) => Number(r.priority_revenue)), backgroundColor: "#bbb", borderRadius: 3 },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { stacked: true }, y: { stacked: true } },
+            },
+          });
+        } catch (err) {
+          content.innerHTML = `<div class="login-error">${err.message}</div>`;
+        }
+      }
+
+      (async () => {
+        const user = await renderLayout("report-tickets");
+        if (!user) return;
+
+        if (!(user.permissions || []).includes(PERMISSION)) {
+          showAccessDenied("report-content");
+          return;
+        }
+
+        const yearSelect = document.getElementById("year-select");
+        yearSelect.value = "2025";
+        yearSelect.addEventListener("change", () => loadReport(yearSelect.value));
+
+        loadReport(yearSelect.value);
+      })();
+    </script>
+  </body>
+</html>

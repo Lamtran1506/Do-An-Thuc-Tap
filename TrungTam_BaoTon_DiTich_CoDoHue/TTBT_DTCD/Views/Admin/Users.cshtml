@@ -1,0 +1,202 @@
+@model IEnumerable<TTBT_DTCD.Models.User>
+@{
+    ViewData["Title"] = "Quản lý Người dùng & Phân quyền";
+}
+
+<!-- ALERTS -->
+  @if (TempData["Message"] != null)
+  {
+    <div class="alert alert-success">
+      <i class="ti ti-check-circle"></i> @TempData["Message"]
+    </div>
+  }
+  @if (TempData["Error"] != null)
+  {
+    <div class="alert alert-danger">
+      <i class="ti ti-alert-triangle"></i> @TempData["Error"]
+    </div>
+  }
+
+  <!-- KPI SUMMARY -->
+  <div class="kpi-grid-4">
+    <div class="kpi-card">
+      <i class="ti ti-users" style="color:#1a4fa0"></i>
+      <div class="kpi-label">Tổng tài khoản</div>
+      <div class="kpi-value">@Model.Count()</div>
+      <div class="kpi-unit">người dùng</div>
+    </div>
+    <div class="kpi-card">
+      <i class="ti ti-shield-lock" style="color:#854f0b"></i>
+      <div class="kpi-label">Admin</div>
+      <div class="kpi-value">@Model.Count(u => u.Role == "Admin")</div>
+      <div class="kpi-unit">tài khoản</div>
+    </div>
+    <div class="kpi-card">
+      <i class="ti ti-user-check" style="color:#0f6e56"></i>
+      <div class="kpi-label">Staff (Nhân viên)</div>
+      <div class="kpi-value">@Model.Count(u => u.Role == "Staff")</div>
+      <div class="kpi-unit">tài khoản</div>
+    </div>
+    <div class="kpi-card">
+      <i class="ti ti-user" style="color:#888"></i>
+      <div class="kpi-label">Customer (Khách)</div>
+      <div class="kpi-value">@Model.Count(u => u.Role == "Customer" || string.IsNullOrEmpty(u.Role))</div>
+      <div class="kpi-unit">tài khoản</div>
+    </div>
+  </div>
+
+  <!-- FILTER + TABLE -->
+  <div class="card">
+    <div class="card-title">
+      <i class="ti ti-users"></i> Danh sách Người dùng &amp; Phân quyền
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-bar">
+      <input type="text" id="search-input" placeholder="🔍  Tìm theo tên đăng nhập hoặc họ tên..." style="flex:1;min-width:200px" />
+      <select id="role-filter">
+        <option value="">Tất cả vai trò</option>
+        <option value="Admin">Admin</option>
+        <option value="Staff">Staff</option>
+        <option value="Customer">Customer</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <table class="tbl" id="users-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Người dùng</th>
+          <th>Email</th>
+          <th>Số điện thoại</th>
+          <th>Vai trò hiện tại</th>
+          <th>Thay đổi quyền</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var user in Model)
+        {
+          string avClass = user.Role == "Admin" ? "av-admin" : user.Role == "Staff" ? "av-staff" : "av-customer";
+          string badgeClass = user.Role == "Admin" ? "b-blue" : user.Role == "Staff" ? "b-green" : "b-gray";
+          string initial = user.FullName?.Length > 0 ? user.FullName.Substring(0,1).ToUpper() : user.Username.Substring(0,1).ToUpper();
+          <tr data-username="@user.Username.ToLower()" data-fullname="@user.FullName?.ToLower()" data-role="@user.Role">
+            <td style="color:#aaa;font-size:11px">#@user.UserId</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="user-av @avClass">@initial</div>
+                <div>
+                  <div style="font-weight:600;color:#1a1a1a;font-size:12px">@user.Username</div>
+                  <div style="font-size:11px;color:#888">@user.FullName</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:11px;color:#555">@user.Email</td>
+            <td style="font-size:11px;color:#555">@user.PhoneNumber</td>
+            <td>
+              <span class="badge @badgeClass">
+                @(user.Role == "Admin" ? "⚙ Admin" : user.Role == "Staff" ? "👷 Staff" : "👤 Customer")
+              </span>
+            </td>
+            <td>
+              @if (user.Username.ToLower() == "admin" || user.Role == "Admin")
+              {
+                <span style="font-size:11px;color:#aaa;font-style:italic">Mặc định hệ thống</span>
+              }
+              else
+              {
+                <form asp-action="ChangeRole" method="post" style="display:flex;align-items:center;gap:8px">
+                  <input type="hidden" name="id" value="@user.UserId" />
+                  <select name="newRole" class="role-select">
+                    @if (user.Role == "Customer" || string.IsNullOrEmpty(user.Role))
+                    {
+                      <option value="Customer" selected="selected">Customer</option>
+                      <option value="Staff">Staff</option>
+                    }
+                    else
+                    {
+                      <option value="Customer">Customer</option>
+                      <option value="Staff" selected="selected">Staff</option>
+                    }
+                  </select>
+                  <button type="submit" class="btn-action btn-blue" style="padding:5px 10px;font-size:11px">
+                    <i class="ti ti-check"></i> Lưu
+                  </button>
+                </form>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (!Model.Any())
+    {
+      <div class="access-denied">
+        <i class="ti ti-users"></i>
+        Chưa có tài khoản nào trong hệ thống.
+      </div>
+    }
+  </div>
+
+  <!-- Permission Matrix -->
+  <div class="card">
+    <div class="card-title"><i class="ti ti-shield"></i> Bảng Phân quyền Vai trò</div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Chức năng</th>
+          <th style="text-align:center">Admin</th>
+          <th style="text-align:center">Staff</th>
+          <th style="text-align:center">Customer</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><i class="ti ti-layout-dashboard" style="font-size:12px;margin-right:5px;color:#1a4fa0"></i>Dashboard (Trang chủ)</td>
+          <td style="text-align:center"><span class="badge b-green">✓</span></td>
+          <td style="text-align:center"><span class="badge b-green">✓</span></td>
+          <td style="text-align:center"><span class="badge b-green">✓</span></td>
+        </tr>
+        <tr>
+          <td><i class="ti ti-users" style="font-size:12px;margin-right:5px;color:#1a4fa0"></i>Quản lý Người dùng &amp; Phân quyền</td>
+          <td style="text-align:center"><span class="badge b-green">✓</span></td>
+          <td style="text-align:center"><span class="badge b-red">✗</span></td>
+          <td style="text-align:center"><span class="badge b-red">✗</span></td>
+        </tr>
+        <tr>
+          <td><i class="ti ti-user-plus" style="font-size:12px;margin-right:5px;color:#1a4fa0"></i>Đăng ký tài khoản</td>
+          <td style="text-align:center"><span class="badge b-green">✓</span></td>
+          <td style="text-align:center"><span class="badge b-green">✓</span></td>
+          <td style="text-align:center"><span class="badge b-green">✓</span></td>
+        </tr>
+        <tr>
+          <td><i class="ti ti-key" style="font-size:12px;margin-right:5px;color:#1a4fa0"></i>Đổi vai trò người dùng (ChangeRole)</td>
+          <td style="text-align:center"><span class="badge b-green">✓</span></td>
+          <td style="text-align:center"><span class="badge b-red">✗</span></td>
+          <td style="text-align:center"><span class="badge b-red">✗</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="font-size:11px;color:#aaa;margin-top:10px">
+      * Để mở rộng phân quyền (thêm module mới), cập nhật bảng này và middleware kiểm tra session Role.
+    </div>
+  </div>
+
+<script>
+  const searchInput = document.getElementById("search-input");
+  const roleFilter  = document.getElementById("role-filter");
+  const rows = document.querySelectorAll("#users-table tbody tr");
+
+  function filterTable() {
+    const q    = searchInput.value.toLowerCase();
+    const role = roleFilter.value.toLowerCase();
+    rows.forEach(row => {
+      const matchQ    = row.dataset.username.includes(q) || row.dataset.fullname.includes(q);
+      const matchRole = !role || row.dataset.role.toLowerCase() === role;
+      row.style.display = matchQ && matchRole ? "" : "none";
+    });
+  }
+  searchInput.addEventListener("input", filterTable);
+  roleFilter.addEventListener("change", filterTable);
+</script>

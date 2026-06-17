@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - Cổng thông tin điện tử</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="login-page">
+      <div class="login-box">
+        <div class="login-logo">
+          <div class="login-icon"><i class="ti ti-building-arch"></i></div>
+          <div class="login-title">CỔNG THÔNG TIN ĐIỆN TỬ</div>
+          <div class="login-sub">TRUNG TÂM BẢO TỒN DI TÍCH CỐ ĐÔ HUẾ</div>
+        </div>
+
+        <div id="login-error" class="login-error" style="display: none"></div>
+
+        <form id="login-form">
+          <div class="login-field">
+            <label for="username">Tên đăng nhập</label>
+            <input type="text" id="username" name="username" autocomplete="username" required />
+          </div>
+          <div class="login-field">
+            <label for="password">Mật khẩu</label>
+            <input type="password" id="password" name="password" autocomplete="current-password" required />
+          </div>
+          <button type="submit" class="login-btn" id="login-btn">Đăng nhập</button>
+        </form>
+
+        <div class="login-demo">
+          Tài khoản demo: admin / ketoan / nhanvien / user<br />
+          (mật khẩu tương ứng: admin123 / ketoan123 / nhanvien123 / user123)
+        </div>
+      </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+      // Nếu đã đăng nhập rồi thì chuyển thẳng vào dashboard
+      getCurrentUser().then((user) => {
+        if (user) window.location.href = "index.html";
+      });
+
+      const form = document.getElementById("login-form");
+      const errorBox = document.getElementById("login-error");
+      const submitBtn = document.getElementById("login-btn");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorBox.style.display = "none";
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Đang đăng nhập...";
+
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+
+        try {
+          await loginRequest(username, password);
+          window.location.href = "index.html";
+        } catch (err) {
+          errorBox.textContent = err.message;
+          errorBox.style.display = "block";
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Đăng nhập";
+        }
+      });
+    </script>
+  </body>
+</html>

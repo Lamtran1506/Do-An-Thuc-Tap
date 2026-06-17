@@ -1,0 +1,112 @@
+@{
+    ViewData["Title"] = "Báo cáo tổng hợp - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế";
+    Layout = "_Layout";
+}
+
+<div class="charts-row">
+  <div class="card-nm">
+    <div class="card-title">
+      <i class="ti ti-chart-bar" style="color: #1a4fa0"></i>SO SÁNH VÉ BÁN RA VÀ KHÁCH CAMERA THEO NGÀY
+    </div>
+    <div style="position: relative; height: 200px">
+      <canvas id="repBarChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card-nm">
+    <div class="card-title">
+      <i class="ti ti-chart-line" style="color: #0f6e56"></i>XU HƯỚNG DOANH THU THEO THÁNG
+    </div>
+    <div style="position: relative; height: 200px">
+      <canvas id="repLineChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="card-nm" style="padding: 0; overflow: hidden;">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Ngày</th>
+        <th>Doanh thu (đồng)</th>
+        <th>Vé bán ra (vé)</th>
+        <th>Lượt khách camera (lượt)</th>
+        <th>Chênh lệch</th>
+        <th>Tỷ lệ chênh lệch</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>08/05/2025</td>
+        <td><strong>489.560.000</strong></td>
+        <td>3.490</td>
+        <td>4.160</td>
+        <td style="color: #a32d2d; font-weight: 600">+670</td>
+        <td style="color: #a32d2d">+19.20%</td>
+      </tr>
+      <tr>
+        <td>07/05/2025</td>
+        <td><strong>612.400.000</strong></td>
+        <td>4.980</td>
+        <td>5.600</td>
+        <td style="color: #a32d2d; font-weight: 600">+620</td>
+        <td style="color: #a32d2d">+12.45%</td>
+      </tr>
+      <tr>
+        <td>06/05/2025</td>
+        <td><strong>678.250.000</strong></td>
+        <td>5.340</td>
+        <td>6.120</td>
+        <td style="color: #a32d2d; font-weight: 600">+780</td>
+        <td style="color: #a32d2d">+14.61%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // 1. Biểu đồ cột đôi (Bar Chart)
+  new Chart(document.getElementById("repBarChart"), {
+    type: "bar",
+    data: {
+      labels: ["01/05", "02/05", "03/05", "04/05", "05/05"],
+      datasets: [
+        {
+          label: "Vé bán ra",
+          data: [5120, 4850, 6240, 7320, 6890],
+          backgroundColor: "#1a4fa0",
+        },
+        {
+          label: "Khách camera",
+          data: [5680, 5300, 6900, 8100, 7450],
+          backgroundColor: "#f5c518",
+        },
+      ],
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false 
+    },
+  });
+
+  // 2. Biểu đồ đường xu hướng (Line Chart)
+  new Chart(document.getElementById("repLineChart"), {
+    type: "line",
+    data: {
+      labels: ["T01", "T02", "T03", "T04", "T05", "T06"],
+      datasets: [
+        {
+          label: "Doanh thu (Tỷ)",
+          data: [3.1, 2.8, 4.2, 5.1, 5.8, 6.2],
+          borderColor: "#1a4fa0",
+          tension: 0.3,
+          fill: false,
+        },
+      ],
+    },
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false 
+    },
+  });
+</script>

@@ -1,0 +1,203 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Dashboard - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế";
+    var fullName = HttpContextAccessor.HttpContext?.Session.GetString("FullName") ?? "Người dùng";
+    var role     = HttpContextAccessor.HttpContext?.Session.GetString("Role") ?? "";
+    string roleLabel = role switch {
+        "Admin"    => "Quản trị viên",
+        "Staff"    => "Nhân viên",
+        "Customer" => "Khách hàng",
+        _ => role
+    };
+}
+
+<!-- KPI 5 CỘT -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <i class="ti ti-coin" style="color:#185fa5"></i>
+    <div class="kpi-label">Tổng doanh thu</div>
+    <div class="kpi-value">500.000.000</div>
+    <div class="kpi-unit">đồng</div>
+  </div>
+  <div class="kpi-card">
+    <i class="ti ti-ticket" style="color:#0f6e56"></i>
+    <div class="kpi-label">Doanh thu bán vé</div>
+    <div class="kpi-value">100.000.000</div>
+    <div class="kpi-unit">đồng</div>
+  </div>
+  <div class="kpi-card">
+    <i class="ti ti-building-store" style="color:#854f0b"></i>
+    <div class="kpi-label">Doanh thu dịch vụ khác</div>
+    <div class="kpi-value">400.000.000</div>
+    <div class="kpi-unit">đồng</div>
+  </div>
+  <div class="kpi-card">
+    <i class="ti ti-camera" style="color:#993356"></i>
+    <div class="kpi-label">Lượt quét qua camera</div>
+    <div class="kpi-value">51.000</div>
+    <div class="kpi-unit">lượt</div>
+  </div>
+  <div class="kpi-card">
+    <i class="ti ti-report" style="color:#533ab7"></i>
+    <div class="kpi-label">Tiến độ hồ sơ di sản</div>
+    <div class="kpi-value">500 / 10.000</div>
+    <div class="kpi-unit">hồ sơ</div>
+  </div>
+</div>
+
+<!-- 3 BIỂU ĐỒ -->
+<div class="charts-row">
+  <div class="card-nm">
+    <div class="card-title">
+      <i class="ti ti-chart-bar" style="color:#185fa5"></i>Doanh thu bán vé
+    </div>
+    <div class="legend-row">
+      <span class="legend-item"><span class="ldot" style="background:#1a4fa0"></span>Người lớn</span>
+      <span class="legend-item"><span class="ldot" style="background:#f5c518"></span>Trẻ em</span>
+      <span class="legend-item"><span class="ldot" style="background:#bbb"></span>Ưu tiên</span>
+    </div>
+    <div style="position:relative;height:150px"><canvas id="barChart"></canvas></div>
+  </div>
+  <div class="card-nm">
+    <div class="card-title">
+      <i class="ti ti-chart-line" style="color:#0f6e56"></i>Doanh thu theo tháng
+    </div>
+    <div style="position:relative;height:170px"><canvas id="lineChart"></canvas></div>
+  </div>
+  <div class="card-nm">
+    <div class="card-title">
+      <i class="ti ti-chart-pie" style="color:#854f0b"></i>Tỉ lệ vé bán
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="position:relative;height:150px;flex:1"><canvas id="pieChart"></canvas></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="legend-item"><span class="ldot" style="background:#1a4fa0"></span>Người lớn 55%</div>
+        <div class="legend-item"><span class="ldot" style="background:#f5c518"></span>Trẻ em 30%</div>
+        <div class="legend-item"><span class="ldot" style="background:#e07b39"></span>Ưu tiên 15%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SỰ KIỆN + DỰ ÁN -->
+<div class="two-col-grid">
+  <div class="card-nm">
+    <div class="card-title">
+      <i class="ti ti-calendar-event" style="color:#185fa5"></i>Sự kiện sắp diễn ra
+    </div>
+    <table class="tbl">
+      <thead><tr><th>Sự kiện</th><th>Ngày</th></tr></thead>
+      <tbody>
+        <tr><td>Lễ hội Áo Dài</td><td><span class="badge b-blue">12/05/2025</span></td></tr>
+        <tr><td>Triển lãm Gốm cổ</td><td><span class="badge b-amber">20/05/2025</span></td></tr>
+        <tr><td>Festival Huế 2025</td><td><span class="badge b-green">01/06/2025</span></td></tr>
+        <tr><td>Đêm Hoàng Cung</td><td><span class="badge b-amber">15/06/2025</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card-nm">
+    <div class="card-title">
+      <i class="ti ti-building" style="color:#854f0b"></i>Dự án bảo tồn
+    </div>
+    <table class="tbl">
+      <thead><tr><th>Dự án</th><th>Tình trạng</th></tr></thead>
+      <tbody>
+        <tr><td>Tu sửa Hiển Lâm Các</td><td><span class="badge b-green">Đang TH</span></td></tr>
+        <tr><td>Bảo tồn Lăng Thiệu Trị</td><td><span class="badge b-amber">Chờ duyệt</span></td></tr>
+        <tr><td>Phục dựng Điện Kiến Trung</td><td><span class="badge b-blue-light">Lên KH</span></td></tr>
+        <tr><td>Số hoá tài liệu Hán Nôm</td><td><span class="badge b-green">Đang TH</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CAMERA + NHÂN VIÊN + THU CHI -->
+<div class="two-col-grid">
+  <div class="card-nm">
+    <div class="card-title">
+      <i class="ti ti-camera" style="color:#993356"></i>Camera lượt quét theo cổng
+    </div>
+    <div class="cam-row"><span class="cam-label">Cổng A – Bắc</span><div class="cam-bar-wrap"><div class="cam-bar" style="width:88%"></div></div><span class="cam-count">32.450</span></div>
+    <div class="cam-row"><span class="cam-label">Cổng B – Nam</span><div class="cam-bar-wrap"><div class="cam-bar" style="width:72%"></div></div><span class="cam-count">26.110</span></div>
+    <div class="cam-row"><span class="cam-label">Cổng C – Đông</span><div class="cam-bar-wrap"><div class="cam-bar" style="width:56%"></div></div><span class="cam-count">21.080</span></div>
+    <div class="cam-row"><span class="cam-label">Cổng D – Tây</span><div class="cam-bar-wrap"><div class="cam-bar" style="width:42%;background:#378add"></div></div><span class="cam-count">15.640</span></div>
+    <div class="cam-row"><span class="cam-label">Cổng E – VIP</span><div class="cam-bar-wrap"><div class="cam-bar" style="width:28%;background:#b5d4f4"></div></div><span class="cam-count">9.820</span></div>
+  </div>
+
+  <div class="inner-right-grid">
+    <div class="card-nm">
+      <div class="card-title">
+        <i class="ti ti-users" style="color:#533ab7"></i>Danh sách chuyên viên
+      </div>
+      <div class="staff-row">
+        <div class="staff-av" style="background:#e6f1fb;color:#185fa5">NA</div>
+        <div style="flex:1"><div class="staff-name">Nguyễn Văn A</div><div class="staff-role">Hướng dẫn viên</div></div>
+        <span class="badge b-green">Online</span>
+      </div>
+      <div class="staff-row">
+        <div class="staff-av" style="background:#faeeda;color:#854f0b">LB</div>
+        <div style="flex:1"><div class="staff-name">Lê Thị B</div><div class="staff-role">Phòng kỹ thuật</div></div>
+        <span class="badge b-blue">Trực ban</span>
+      </div>
+      <div class="staff-row">
+        <div class="staff-av" style="background:#e1f5ee;color:#0f6e56">TC</div>
+        <div style="flex:1"><div class="staff-name">Trần Bình C</div><div class="staff-role">Quản lý dự án</div></div>
+        <span class="badge b-amber">Họp</span>
+      </div>
+    </div>
+
+    <div class="card-nm">
+      <div class="card-title">
+        <i class="ti ti-report-money" style="color:#0f6e56"></i>Thu chi tổng hợp
+      </div>
+      @if (role == "Admin")
+      {
+        <div class="summary-row"><span class="summary-lbl">• Doanh thu</span><span class="summary-val">500.000.000đ</span></div>
+        <div class="summary-row"><span class="summary-lbl">• Chi phí nhân sự</span><span class="summary-val">120.000.000đ</span></div>
+        <div class="summary-row"><span class="summary-lbl">• Chi phí bảo trì</span><span class="summary-val">80.000.000đ</span></div>
+        <div class="summary-row"><span class="summary-lbl"><strong>• Lợi nhuận</strong></span><span class="summary-val profit">300.000.000đ</span></div>
+      }
+      else
+      {
+        <div style="text-align:center;padding:18px 0;color:#888;font-size:13px">
+          <i class="ti ti-lock" style="color:#a32d2d;margin-right:4px"></i>
+          Tài khoản @roleLabel không có quyền xem tài chính.
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<script>
+  const gc = "rgba(0,0,0,0.06)", tc = "#999";
+  new Chart(document.getElementById("barChart"), {
+    type:"bar",
+    data:{labels:["T3","T4","T5","T6","T7","T8"],datasets:[
+      {label:"Người lớn",data:[42,55,48,61,70,58],backgroundColor:"#1a4fa0",borderRadius:3},
+      {label:"Trẻ em",data:[18,22,20,26,30,24],backgroundColor:"#f5c518",borderRadius:3},
+      {label:"Ưu tiên",data:[8,10,9,12,14,11],backgroundColor:"#bbb",borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}},border:{display:false}},
+              y:{grid:{color:gc},ticks:{color:tc,font:{size:10}},border:{display:false}}}}
+  });
+  new Chart(document.getElementById("lineChart"), {
+    type:"line",
+    data:{labels:["T1","T2","T3","T4","T5","T6","T7","T8"],datasets:[
+      {label:"Doanh thu",data:[280,310,320,410,380,470,520,500],borderColor:"#1a4fa0",
+       backgroundColor:"rgba(26,79,160,0.07)",borderWidth:2,pointRadius:3,
+       pointBackgroundColor:"#1a4fa0",fill:true,tension:0.4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}},border:{display:false}},
+              y:{grid:{color:gc},ticks:{color:tc,font:{size:10}},border:{display:false}}}}
+  });
+  new Chart(document.getElementById("pieChart"), {
+    type:"doughnut",
+    data:{labels:["Người lớn","Trẻ em","Ưu tiên"],datasets:[
+      {data:[55,30,15],backgroundColor:["#1a4fa0","#f5c518","#e07b39"],borderWidth:0,hoverOffset:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{display:false}}}
+  });
+</script>

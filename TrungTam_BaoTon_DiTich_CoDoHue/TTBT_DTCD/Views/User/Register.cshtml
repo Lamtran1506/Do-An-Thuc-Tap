@@ -1,0 +1,110 @@
+@model TTBT_DTCD.Models.User
+@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>@ViewData["Title"] - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@@3.19.0/dist/tabler-icons.min.css"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"Segoe UI",Arial,sans-serif;background:linear-gradient(135deg,#0f3069 0%,#1a4fa0 50%,#2e6bc6 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;color:#333;padding:20px}
+    .register-container{width:100%;max-width:500px}
+    .register-box{background:rgba(255,255,255,.96);border-radius:16px;padding:32px 30px;box-shadow:0 12px 40px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.2)}
+    .register-logo{text-align:center;margin-bottom:24px}
+    .register-icon{width:56px;height:56px;background:#1a4fa0;color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:10px;border:2px solid #f5c518;box-shadow:0 4px 10px rgba(26,79,160,.3)}
+    .register-title{color:#1a4fa0;font-size:14px;font-weight:700;letter-spacing:.05em}
+    .register-sub{color:#b08400;font-size:12px;font-weight:600;letter-spacing:.03em;margin-top:2px}
+    .form-section{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+    .form-group{display:flex;flex-direction:column;gap:5px}
+    .form-group.full{grid-column:1/-1}
+    .form-group label{font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.04em}
+    .input-wrapper{position:relative}
+    .input-wrapper i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#aaa;font-size:17px}
+    .form-group input{width:100%;padding:10px 12px 10px 38px;border:1px solid #ccd0d5;border-radius:8px;font-size:13px;outline:none;background:#f9fafb;transition:all .2s}
+    .form-group input:focus{border-color:#1a4fa0;background:#fff;box-shadow:0 0 0 3px rgba(26,79,160,.12)}
+    .form-error{color:#a32d2d;font-size:11px}
+    .alert-danger{background:#fcebeb;color:#a32d2d;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:8px;border:1px solid #f5c2c2}
+    .register-btn{width:100%;padding:12px;background:#ff6f43;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;box-shadow:0 4px 12px rgba(255,111,67,.25)}
+    .register-btn:hover{background:#e6562b}
+    .back-link{display:block;text-align:center;margin-top:14px;color:#1a4fa0;font-size:13px;text-decoration:none;font-weight:500}
+    .back-link:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+<div class="register-container">
+  <div class="register-box">
+    <div class="register-logo">
+      <div class="register-icon"><i class="ti ti-building-arch"></i></div>
+      <div class="register-title">CỔNG THÔNG TIN ĐIỆN TỬ</div>
+      <div class="register-sub">TRUNG TÂM BẢO TỒN DI TÍCH CỐ ĐÔ HUẾ</div>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+      <div class="alert-danger">
+        <i class="ti ti-alert-circle"></i> @ViewBag.Error
+      </div>
+    }
+
+    <form asp-action="Register" method="post">
+      <div class="form-section">
+        <div class="form-group full">
+          <label>Họ và tên</label>
+          <div class="input-wrapper">
+            <i class="ti ti-user"></i>
+            <input asp-for="FullName" placeholder="Nhập họ và tên đầy đủ"/>
+          </div>
+          <span asp-validation-for="FullName" class="form-error"></span>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <div class="input-wrapper">
+            <i class="ti ti-mail"></i>
+            <input asp-for="Email" type="email" placeholder="example@email.com"/>
+          </div>
+          <span asp-validation-for="Email" class="form-error"></span>
+        </div>
+        <div class="form-group">
+          <label>Số điện thoại</label>
+          <div class="input-wrapper">
+            <i class="ti ti-phone"></i>
+            <input asp-for="PhoneNumber" placeholder="Số điện thoại"/>
+          </div>
+          <span asp-validation-for="PhoneNumber" class="form-error"></span>
+        </div>
+        <div class="form-group">
+          <label>Tên đăng nhập</label>
+          <div class="input-wrapper">
+            <i class="ti ti-id-badge"></i>
+            <input asp-for="Username" placeholder="Tên tài khoản"/>
+          </div>
+          <span asp-validation-for="Username" class="form-error"></span>
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu</label>
+          <div class="input-wrapper">
+            <i class="ti ti-lock"></i>
+            <input asp-for="Password" type="password" placeholder="Mật khẩu"/>
+          </div>
+          <span asp-validation-for="Password" class="form-error"></span>
+        </div>
+        <div class="form-group full">
+          <button type="submit" class="register-btn">
+            <i class="ti ti-user-plus"></i> Đăng ký tài khoản
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <a asp-controller="User" asp-action="Login" class="back-link">
+      Đã có tài khoản? Đăng nhập tại đây
+    </a>
+  </div>
+</div>
+</body>
+</html>
