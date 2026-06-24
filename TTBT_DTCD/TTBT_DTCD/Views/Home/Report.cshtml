@@ -1,0 +1,74 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@model IEnumerable<TTBT_DTCD.Models.BaoCao>
+@{ ViewData["Title"] = "Báo cáo tổng hợp - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế";
+   var role = HttpContextAccessor.HttpContext?.Session.GetString("Role"); }
+
+@if (TempData["Message"] != null) { <div class="alert alert-success"><i class="ti ti-check-circle"></i> @TempData["Message"]</div> }
+@if (TempData["Error"]   != null) { <div class="alert alert-danger"><i class="ti ti-alert-triangle"></i> @TempData["Error"]</div> }
+
+<div class="charts-row">
+  <div class="card-nm">
+    <div class="card-title"><i class="ti ti-chart-bar" style="color:#1a4fa0"></i>SO SÁNH VÉ BÁN RA VÀ KHÁCH CAMERA THEO NGÀY</div>
+    <div class="legend-row">
+      <span class="legend-item"><span class="ldot" style="background:#1a4fa0"></span>Vé bán ra</span>
+      <span class="legend-item"><span class="ldot" style="background:#f5c518"></span>Khách camera</span>
+    </div>
+    <div style="position:relative;height:200px"><canvas id="repBarChart"></canvas></div>
+  </div>
+  <div class="card-nm">
+    <div class="card-title"><i class="ti ti-chart-line" style="color:#0f6e56"></i>XU HƯỚNG DOANH THU THEO NGÀY</div>
+    <div style="position:relative;height:200px"><canvas id="repLineChart"></canvas></div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <input type="text" id="search" placeholder="🔍 Tìm theo ngày (dd/mm/yyyy)..." style="flex:1;max-width:260px"/>
+  @if (role=="Admin"||role=="Staff") {
+    <a asp-action="CreateBaoCao" class="btn-action btn-blue"><i class="ti ti-plus"></i> Thêm báo cáo</a>
+  }
+</div>
+
+<div class="card-nm" style="padding:0;overflow:hidden">
+  <table class="tbl" id="tbl">
+    <thead><tr><th>Ngày</th><th>Doanh thu (đồng)</th><th>Vé bán ra (vé)</th><th>Lượt khách camera</th><th>Chênh lệch</th><th>Tỷ lệ chênh lệch</th><th style="text-align:center">Thao tác</th></tr></thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+      int cl = item.LuotKhachCamera - item.SoVeBanRa;
+      double tl = item.SoVeBanRa > 0 ? Math.Round((double)cl / item.SoVeBanRa * 100, 2) : 0;
+      string clColor = cl > 0 ? "color:#a32d2d" : "color:#0f6e56";
+      <tr data-s="@item.Ngay.ToString("dd/MM/yyyy")">
+        <td>@item.Ngay.ToString("dd/MM/yyyy")</td>
+        <td><strong>@item.DoanhThu.ToString("N0")</strong></td>
+        <td>@item.SoVeBanRa.ToString("N0")</td>
+        <td>@item.LuotKhachCamera.ToString("N0")</td>
+        <td style="@clColor;font-weight:600">@(cl>0?"+":"")@cl.ToString("N0")</td>
+        <td style="@clColor">@(tl>0?"+":"")@tl%</td>
+        <td class="action-icons" style="text-align:center">
+          <a asp-action="EditBaoCao" asp-route-id="@item.Id"><i class="ti ti-pencil" style="color:#854f0b" title="Sửa"></i></a>
+          @if (role=="Admin") {
+            <form asp-action="DeleteBaoCao" method="post" style="display:inline" onsubmit="return confirm('Xóa báo cáo này?')">
+              <input type="hidden" name="id" value="@item.Id"/>
+              <button type="submit" style="border:none;background:none;cursor:pointer"><i class="ti ti-trash" style="color:#a32d2d"></i></button>
+            </form>
+          }
+        </td>
+      </tr>
+    }
+    </tbody>
+  </table>
+</div>
+
+<script>
+  document.getElementById("search").addEventListener("input",function(){const q=this.value.toLowerCase();document.querySelectorAll("#tbl tbody tr").forEach(r=>{r.style.display=r.dataset.s.includes(q)?"":"none"});});
+
+  const labels=[@Html.Raw(string.Join(",",Model.OrderBy(x=>x.Ngay).Select(x=>"\""+x.Ngay.ToString("dd/MM")+"\"")))]
+  const ve=[@Html.Raw(string.Join(",",Model.OrderBy(x=>x.Ngay).Select(x=>x.SoVeBanRa)))]
+  const cam=[@Html.Raw(string.Join(",",Model.OrderBy(x=>x.Ngay).Select(x=>x.LuotKhachCamera)))]
+  const rev=[@Html.Raw(string.Join(",",Model.OrderBy(x=>x.Ngay).Select(x=>x.DoanhThu)))]
+  const tc="#999",gc="rgba(0,0,0,0.05)";
+
+  new Chart(document.getElementById("repBarChart"),{type:"bar",data:{labels,datasets:[{label:"Vé bán ra",data:ve,backgroundColor:"#1a4fa0",borderRadius:3},{label:"Khách camera",data:cam,backgroundColor:"#f5c518",borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:10}}}}}});
+  new Chart(document.getElementById("repLineChart"),{type:"line",data:{labels,datasets:[{label:"Doanh thu",data:rev,borderColor:"#1a4fa0",backgroundColor:"rgba(26,79,160,0.07)",borderWidth:2,pointRadius:3,fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:10}}}}}});
+</script>

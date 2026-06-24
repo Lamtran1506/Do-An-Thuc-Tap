@@ -1,0 +1,322 @@
+@{
+    ViewData["Title"] = "Danh mục chỉnh sửa Widget";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-extra.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-all.js"></script>
+
+<style>
+    .config-toolbar { 
+        display: flex;
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 15px; 
+        background: #fff; 
+        padding: 12px 15px; 
+        border-radius: 8px; 
+        border: 1px solid #e8e8e8;
+    }
+
+    .toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-save { 
+        background: #0f6e56; 
+        color: #fff; 
+        border: none;
+        padding: 8px 18px; 
+        border-radius: 6px; 
+        font-weight: 600; 
+        cursor: pointer; 
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+    }
+    .btn-save:hover { background: #0a5240; }
+
+    .grid-stack { 
+        background: repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(26,79,160,0.03) 60px), 
+                    repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(26,79,160,0.03) 60px);
+        min-height: 500px; 
+        border: 1px dashed #ccc;
+        border-radius: 8px;
+        padding: 10px;
+    }
+    .grid-stack-item-content { 
+        background: #fff;
+        border: 2px dashed #1a4fa0 !important; 
+        border-radius: 10px; 
+        overflow: hidden; 
+        display: flex; 
+        flex-direction: column; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .w-header { 
+        display: flex;
+        align-items: center; 
+        gap: 6px; 
+        padding: 10px 10px; 
+        border-bottom: 1px solid #f0f0f0; 
+        background: #fafafa; 
+        font-size: 12px; 
+        font-weight: 600; 
+        cursor: grab;
+    }
+    .w-body-preview { 
+        flex: 1; 
+        display: flex; 
+        flex-direction: column;
+        align-items: center; 
+        justify-content: center; 
+        padding: 15px; 
+        color: #888; 
+        background: #fdfdfd; 
+        font-size: 11px; 
+        text-align: center;
+    }
+
+    .input-title { 
+        border: 1px solid #ddd;
+        padding: 4px 6px; 
+        border-radius: 4px; 
+        font-size: 11px; 
+        font-weight: 600; 
+        width: 50%;
+    }
+    .input-title:focus {
+        border-color: #1a4fa0;
+        outline: none;
+    }
+
+    .w-actions-area {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        margin-left: auto;
+    }
+    .btn-action-w {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 4px;
+        border-radius: 4px;
+    }
+    .btn-hide-w { color: #d97706; }
+    .btn-hide-w:hover { background: #fef3c7; }
+    .btn-delete-w { color: #dc2626; }
+    .btn-delete-w:hover { background: #fee2e2; }
+
+    .deleted-sidebar { 
+        background: #fff;
+        padding: 15px; 
+        border-radius: 8px; 
+        border: 1px solid #e8e8e8; 
+        margin-top: 25px; 
+    }
+    .deleted-sidebar h5 { margin-top: 0; color: #333; display: flex; align-items: center; gap: 6px; }
+    .restore-item { 
+        display: flex;
+        justify-content: space-between; 
+        align-items: center; 
+        padding: 10px; 
+        border-bottom: 1px solid #eee; 
+        font-size: 12px; 
+    }
+    .restore-item:last-child { border-bottom: none; }
+    .btn-restore { 
+        background: #1a4fa0; 
+        color: #fff; 
+        border: none;
+        padding: 5px 12px; 
+        border-radius: 4px; 
+        cursor: pointer; 
+        font-size: 11px; 
+        font-weight: 600;
+    }
+    .btn-restore:hover { background: #163e80; }
+</style>
+
+<div class="config-toolbar">
+    <div><strong>🛠️ DANH MỤC CHỈNH SỬA CHỨC NĂNG WIDGET</strong> (Kéo thả tự do, Ẩn hoặc Xóa vĩnh viễn)</div>
+
+    <div class="toolbar-actions">
+        <button class="btn-save" onclick="saveLayoutToDb()">
+            <i class="ti ti-device-floppy"></i> LƯU THAY ĐỔI
+        </button>
+    </div>
+</div>
+
+<div class="grid-stack" id="configGrid"></div>
+
+<div class="deleted-sidebar">
+    <h5><i class="ti ti-eye-off"></i> KHO CHỨC NĂNG ĐANG ẨN (Có thể khôi phục hiển thị)</h5>
+    <div id="deletedWidgetsList"><p style="color:#aaa; font-size:12px;">Chưa có widget nào bị ẩn.</p></div>
+</div>
+
+<script>
+let configGridInstance;
+let allWidgetsData = [];
+
+configGridInstance = GridStack.init({
+    column: 12, 
+    cellHeight: 60, 
+    margin: 10,
+    minRow: 18,         
+    float: true,        
+    disableDrag: false, 
+    disableResize: false, 
+    handle: '.w-header' 
+});
+
+function loadConfigurationScreen() {
+    fetch('/api/widgetconfig/get-all-settings')
+        .then(res => {
+            if (!res.ok) throw new Error("Không thể kết nối API cấu hình.");
+            return res.json();
+        })
+        .then(data => {
+            allWidgetsData = data;
+            renderGridHtmlOnly(); 
+        })
+        .catch(err => console.error("Lỗi khi tải danh mục cấu hình:", err));
+}
+
+function renderGridHtmlOnly() {
+    configGridInstance.removeAll();
+
+    const activeWidgets = allWidgetsData.filter(w => !(w.isDeleted === true || w.IsDeleted === true));
+    const deletedWidgets = allWidgetsData.filter(w => (w.isDeleted === true || w.IsDeleted === true));
+
+    activeWidgets.forEach(w => {
+        const wId = w.widgetId || w.WidgetId;
+        const title = w.title || w.Title;
+        const icon = w.icon || w.Icon;
+        const color = w.color || w.Color;
+        const posX = w.x !== undefined ? w.x : w.X;
+        const posY = w.y !== undefined ? w.y : w.Y;
+        const posW = w.w !== undefined ? w.w : w.W;
+        const posH = w.h !== undefined ? w.h : w.H;
+
+        const html = `
+            <div class="grid-stack-item-content" id="node-${wId}">
+                <div class="w-header">
+                    <i class="${icon}" style="color:${color}"></i>
+                    <input type="text" class="input-title" value="${title}" onchange="updateTitle('${wId}', this.value)" title="Nhấp vào để sửa tiêu đề"/>
+
+                    <div class="w-actions-area">
+                        <button class="btn-action-w btn-hide-w" onclick="hideWidget('${wId}')" title="Ẩn tạm thời vào kho"><i class="ti ti-eye-off"></i></button>
+                        <button class="btn-action-w btn-delete-w" onclick="permanentlyDeleteWidget('${wId}')" title="Xóa vĩnh viễn khỏi hệ thống"><i class="ti ti-trash"></i></button>
+                    </div>
+                </div>
+                <div class="w-body-preview">
+                    <i class="${icon}" style="font-size:24px; color:${color}; margin-bottom:6px; opacity:0.7;"></i>
+                    <span>Chức năng: <strong>${title}</strong></span>
+                </div>
+            </div>
+        `;
+        configGridInstance.addWidget({ x: posX, y: posY, w: posW, h: posH, id: wId, content: html });
+    });
+
+    const listContainer = document.getElementById('deletedWidgetsList');
+    if (deletedWidgets.length === 0) {
+        listContainer.innerHTML = '<p style="color:#aaa; font-size:12px; padding: 5px;">Chưa có widget nào bị ẩn.</p>';
+    } else {
+        listContainer.innerHTML = deletedWidgets.map(w => {
+            const wId = w.widgetId || w.WidgetId;
+            const title = w.title || w.Title;
+            const icon = w.icon || w.Icon;
+            return `
+                <div class="restore-item">
+                    <span><i class="${icon}" style="color:${w.color || w.Color}; margin-right:5px;"></i> ${title}</span>
+                    <button class="btn-restore" onclick="restoreWidget('${wId}')"><i class="ti ti-refresh"></i> Hiện lại</button>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+function updateTitle(id, newTitle) {
+    let target = allWidgetsData.find(w => (w.widgetId == id || w.WidgetId == id));
+    if (target) {
+        if (target.title !== undefined) target.title = newTitle;
+        if (target.Title !== undefined) target.Title = newTitle;
+    }
+}
+
+function hideWidget(id) {
+    let target = allWidgetsData.find(w => (w.widgetId == id || w.WidgetId == id));
+    if (target) {
+        if (target.isDeleted !== undefined) target.isDeleted = true;
+        if (target.IsDeleted !== undefined) target.IsDeleted = true;
+        renderGridHtmlOnly();
+    }
+}
+
+function permanentlyDeleteWidget(id) {
+    if (confirm("⚠️ Bạn có chắc chắn muốn XÓA VĨNH VIỄN chức năng này không?")) {
+        let target = allWidgetsData.find(w => (w.widgetId == id || w.WidgetId == id));
+        if (target) {
+            if (target.isDeleted !== undefined) target.isDeleted = true;
+            if (target.IsDeleted !== undefined) target.IsDeleted = true;
+        }
+        renderGridHtmlOnly();
+    }
+}
+
+function restoreWidget(id) {
+    let target = allWidgetsData.find(w => (w.widgetId == id || w.WidgetId == id));
+    if (target) {
+        if (target.isDeleted !== undefined) target.isDeleted = false;
+        if (target.IsDeleted !== undefined) target.IsDeleted = false;
+
+        if (target.x !== undefined) { target.x = 0; target.y = 0; }
+        if (target.X !== undefined) { target.X = 0; target.Y = 0; }
+        renderGridHtmlOnly();
+    }
+}
+
+function saveLayoutToDb() {
+    const currentNodes = configGridInstance.save();
+    allWidgetsData.forEach(w => {
+        const wId = w.widgetId || w.WidgetId;
+        const liveNode = currentNodes.find(n => n.id === wId);
+        if (liveNode) {
+            const isDel = w.isDeleted !== undefined ? w.isDeleted : w.IsDeleted;
+            if (!isDel) {
+                if (w.x !== undefined) {
+                    w.x = liveNode.x; w.y = liveNode.y;
+                    w.w = liveNode.w; w.h = liveNode.h;
+                }
+                if (w.X !== undefined) {
+                    w.X = liveNode.x; w.Y = liveNode.y;
+                    w.W = liveNode.w; w.H = liveNode.h;
+                }
+            }
+        }
+    });
+
+    fetch('/api/widgetconfig/save-layout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(allWidgetsData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("🎉 Đã lưu cấu hình và đồng bộ thành công!");
+            loadConfigurationScreen(); 
+        }
+    })
+    .catch(err => alert("❌ Lỗi kết nối Server: " + err));
+}
+
+loadConfigurationScreen();
+</script>

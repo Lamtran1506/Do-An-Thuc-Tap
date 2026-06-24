@@ -1,0 +1,105 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@model IEnumerable<TTBT_DTCD.Models.HoSoDiSan>
+@{ ViewData["Title"] = "Sổ hồ sơ di sản - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế";
+   var role = HttpContextAccessor.HttpContext?.Session.GetString("Role"); }
+
+@if (TempData["Message"] != null) { <div class="alert alert-success"><i class="ti ti-check-circle"></i> @TempData["Message"]</div> }
+@if (TempData["Error"]   != null) { <div class="alert alert-danger"><i class="ti ti-alert-triangle"></i> @TempData["Error"]</div> }
+
+<div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+  <button id="btnLock" class="btn-action btn-blue" style="gap:6px;padding:8px 14px">
+    <i class="ti ti-lock"></i> <span id="txtLock">Khóa bố cục</span>
+  </button>
+</div>
+<div id="alertLock" class="alert alert-danger" style="display:none;margin-bottom:16px">
+  <i class="ti ti-lock"></i> Bố cục sổ di sản đã được khóa. Các nút thao tác đã ẩn để bảo mật.
+</div>
+
+<div class="kpi-grid-4">
+  <div class="kpi-card"><i class="ti ti-building-fortress" style="color:#1a4fa0"></i><div class="kpi-label">Tổng hồ sơ kiểm kê</div><div class="kpi-value">@Model.Count()</div><div class="kpi-unit">hồ sơ</div></div>
+  <div class="kpi-card"><i class="ti ti-checkbox" style="color:#0f6e56"></i><div class="kpi-label">Đã hoàn thành số hóa</div><div class="kpi-value">@Model.Count(x=>x.TinhTrang.Contains("số hóa")||x.TinhTrang.Contains("Ổn định"))</div><div class="kpi-unit">hồ sơ</div></div>
+  <div class="kpi-card"><i class="ti ti-progress-alert" style="color:#854f0b"></i><div class="kpi-label">Đang thực hiện</div><div class="kpi-value">@Model.Count(x=>x.TinhTrang.Contains("Đang TH")||x.TinhTrang.Contains("phục dựng"))</div><div class="kpi-unit">công trình</div></div>
+  <div class="kpi-card"><i class="ti ti-alert-triangle" style="color:#a32d2d"></i><div class="kpi-label">Chờ phê duyệt</div><div class="kpi-value">@Model.Count(x=>x.TinhTrang.Contains("Chờ"))</div><div class="kpi-unit">hồ sơ đề xuất</div></div>
+</div>
+
+<div class="charts-row-2" style="grid-template-columns:1.2fr 1.8fr;gap:16px;margin-bottom:16px">
+  <div class="card-nm">
+    <div class="card-title" style="color:#a32d2d"><i class="ti ti-video"></i> HÌNH ẢNH TRỰC TIẾP CAMERA AI</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      @foreach (var cam in new[]{("1. Đại Nội","#2ed573"),("2. Lăng Khải Định","#2ed573"),("3. Chùa Thiên Mụ","#2ed573"),("4. Lăng Tự Đức","#ffa502")})
+      {
+        <div style="background:#000;border-radius:6px;aspect-ratio:16/10;padding:10px;position:relative;border:1px solid #333">
+          <span style="color:@cam.Item2;font-size:11px;font-weight:600;display:block"><i class="ti ti-point-filled"></i> @cam.Item1</span>
+          <div style="color:#555;font-size:11px;text-align:center;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">[Camera Live Stream]</div>
+        </div>
+      }
+    </div>
+  </div>
+  <div class="card-nm">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span><i class="ti ti-chart-bar" style="color:#1a4fa0"></i> SO SÁNH LƯỢT KHÁCH CAMERA AI VÀ VÉ BÁN THEO GIỜ</span>
+      <div class="legend-row" style="margin-bottom:0">
+        <span class="legend-item"><span class="ldot" style="background:#1a4fa0"></span>Khách AI</span>
+        <span class="legend-item"><span class="ldot" style="background:#f5c518"></span>Vé Bán</span>
+      </div>
+    </div>
+    <div style="position:relative;height:210px;margin-top:15px"><canvas id="heritageHourChart"></canvas></div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <input type="text" id="search" placeholder="Nhập tên di sản, mã số..." style="flex:1;max-width:250px"/>
+  <select id="loai-filter"><option value="">Tất cả loại hình</option><option>Kiến trúc Cung đình</option><option>Lăng tẩm</option><option>Tài liệu</option></select>
+  <select id="tt-filter"><option value="">Tất cả tình trạng</option><option>Ổn định / Đã số hóa</option><option>Đang TH số hóa</option><option>Đã phục dựng / Đang TH</option><option>Chờ phê duyệt</option></select>
+  @if (role=="Admin"||role=="Staff") {
+    <a asp-action="CreateHoSo" class="btn-action btn-blue"><i class="ti ti-plus"></i> Thêm hồ sơ</a>
+  }
+</div>
+
+<div class="card-nm" style="padding:0;overflow:hidden">
+  <table class="tbl" id="tbl">
+    <thead><tr><th>Mã Di Sản</th><th>Tên Di Sản / Công Trình</th><th>Loại Hình</th><th>Niên Đại</th><th>Vị Trí</th><th>Tình Trạng</th><th class="ac" style="text-align:center;width:100px">Thao Tác</th></tr></thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+      string tc = item.TinhTrang.Contains("Ổn định")||item.TinhTrang.Contains("số hóa") ? "b-green"
+                : item.TinhTrang.Contains("phục dựng")||item.TinhTrang.Contains("Đang TH") ? "b-blue"
+                : item.TinhTrang.Contains("Chờ") ? "b-amber" : "b-gray";
+      <tr data-s="@(item.MaHoSo+" "+item.TenDiTich).ToLower()" data-loai="@item.LoaiDiTich" data-tt="@item.TinhTrang">
+        <td><strong>@item.MaHoSo</strong></td>
+        <td>@item.TenDiTich</td>
+        <td><span class="badge b-blue-light">@item.LoaiDiTich</span></td>
+        <td>@item.NienDai</td>
+        <td>@item.ViTri</td>
+        <td><span class="badge @tc">@item.TinhTrang</span></td>
+        <td class="action-icons ac" style="text-align:center">
+          <a asp-action="EditHoSo" asp-route-id="@item.Id"><i class="ti ti-pencil" style="color:#854f0b" title="Sửa"></i></a>
+          @if (role=="Admin") {
+            <form asp-action="DeleteHoSo" method="post" style="display:inline" onsubmit="return confirm('Xóa hồ sơ này?')">
+              <input type="hidden" name="id" value="@item.Id"/>
+              <button type="submit" style="border:none;background:none;cursor:pointer"><i class="ti ti-trash" style="color:#a32d2d"></i></button>
+            </form>
+          }
+        </td>
+      </tr>
+    }
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const rows=document.querySelectorAll("#tbl tbody tr");
+  function f(){const q=document.getElementById("search").value.toLowerCase(),l=document.getElementById("loai-filter").value,t=document.getElementById("tt-filter").value;rows.forEach(r=>{r.style.display=(r.dataset.s.includes(q)&&(!l||r.dataset.loai===l)&&(!t||r.dataset.tt===t))?"":"none"});}
+  document.getElementById("search").addEventListener("input",f);
+  document.getElementById("loai-filter").addEventListener("change",f);
+  document.getElementById("tt-filter").addEventListener("change",f);
+
+  new Chart(document.getElementById("heritageHourChart"),{type:"bar",data:{labels:["09:00","10:00","11:00","12:00","13:00"],datasets:[{label:"Khách AI",data:[2850,4320,3850,2950,2150],backgroundColor:"#1a4fa0",borderRadius:2},{label:"Vé Bán Ra",data:[2200,3500,3100,2400,1800],backgroundColor:"#f5c518",borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:"#999",font:{size:10}}},y:{ticks:{stepSize:1000,color:"#999",font:{size:10}},grid:{color:"rgba(0,0,0,0.06)"}}}}});
+
+  const btn=document.getElementById("btnLock"),txt=document.getElementById("txtLock"),alertEl=document.getElementById("alertLock"),ac=document.querySelectorAll(".ac");
+  let locked=localStorage.getItem("heritageLocked")==="true";
+  function applyLock(v){locked=v;localStorage.setItem("heritageLocked",v);btn.style.background=v?"#666":"#1a4fa0";txt.textContent=v?"Mở khóa bố cục":"Khóa bố cục";alertEl.style.display=v?"flex":"none";ac.forEach(c=>{c.style.opacity=v?"0":"1";c.style.pointerEvents=v?"none":"auto"});}
+  applyLock(locked);
+  btn.addEventListener("click",()=>applyLock(!locked));
+</script>

@@ -1,0 +1,441 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Dashboard - Trung Tâm Bảo Tồn Di Tích Cố Đô Huế";
+    var role      = HttpContextAccessor.HttpContext?.Session.GetString("Role") ?? "";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-extra.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-all.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+  .grid-stack { background: transparent; min-height: 600px; }
+
+  .grid-stack-item-content {
+    background: #ffffff; 
+    border-radius: 12px; 
+    border: none;
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column;
+    box-shadow: 0 4px 18px rgba(164, 175, 192, 0.12);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .grid-stack-item-content:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(140, 153, 173, 0.2);
+  }
+
+  .w-header {
+    display: flex; 
+    align-items: center; 
+    gap: 8px;
+    padding: 14px 18px; 
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px; 
+    font-weight: 700; 
+    color: #1e293b;
+    background: #ffffff; 
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .w-header i { font-size: 18px; }
+
+  .w-body { flex: 1; overflow: auto; padding: 16px 18px; }
+
+  .w-kpi-grid { 
+    display: grid; 
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 14px; 
+    width: 100%;
+  }
+  .w-kpi-item { 
+    text-align: left; 
+    padding: 16px; 
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-bg-0 { background: linear-gradient(135deg, #f0f7ff 0%, #e0f2fe 100%); }
+  .kpi-bg-1 { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); }
+  .kpi-bg-2 { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
+  .kpi-bg-3 { background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); }
+  .kpi-bg-4 { background: linear-gradient(135deg, #f5f3ff 0%, #edd1ff 100%); }
+
+  .w-kpi-icon-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  }
+  .w-kpi-icon-box i { font-size: 22px; }
+  .w-kpi-info { flex: 1; }
+  .w-kpi-label { font-size: 11px; color: #64748b; font-weight: 600; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.02em; }
+  .w-kpi-value { font-size: 18px; font-weight: 700; color: #0f172a; line-height: 1.2; }
+  .w-kpi-unit  { font-size: 10px; color: #94a3b8; font-weight: 500; margin-top: 1px; }
+
+  .cam-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .cam-row:last-child { margin-bottom: 0; }
+  .cam-label { font-size: 12px; font-weight: 500; color: #475569; min-width: 100px; }
+  .cam-bar-wrap { flex: 1; height: 8px; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
+  .cam-bar { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%); }
+  .cam-count { font-size: 12px; font-weight: 700; color: #1e293b; min-width: 50px; text-align: right; }
+
+  .staff-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f8fafc; }
+  .staff-row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .staff-av { width: 34px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+  .staff-name { font-size: 12px; font-weight: 600; color: #1e293b; }
+  .staff-role { font-size: 11px; color: #64748b; margin-top: 1px; }
+
+  .summary-row { display: flex; justify-content: space-between; padding: 8px 2px; border-bottom: 1px dashed #e2e8f0; font-size: 12px; color: #475569; }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-val { font-weight: 700; color: #1e293b; }
+  .summary-val.profit { color: #10b981; font-size: 13px; }
+
+  .badge { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 999px; font-weight: 600; text-align: center; }
+  .b-blue  { background: #eff6ff; color: #2563eb; }
+  .b-green { background: #ecfdf5; color: #059669; }
+  .b-amber { background: #fffbe6; color: #d97706; }
+
+  .w-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .w-tbl th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b; padding: 10px 12px; border-bottom: 2px solid #e2e8f0; background: #f8fafc; }
+  .w-tbl td { padding: 12px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+  .w-tbl tr:nth-child(even) { background: #fafafa; }
+  .w-tbl tr:last-child td { border-bottom: none; }
+
+  .legend-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; padding: 2px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: #475569; }
+  .ldot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  .inner-filter-box { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    background: #f8fafc; 
+    padding: 8px 12px; 
+    border-radius: 8px; 
+    border: 1px solid #e2e8f0; 
+    margin-bottom: 12px; 
+  }
+  .inner-filter-box input[type="date"] { 
+    border: 1px solid #cbd5e1; 
+    border-radius: 6px; 
+    font-size: 11px; 
+    padding: 4px 8px; 
+    outline: none; 
+    color: #334155; 
+    font-weight: 500;
+    background: #ffffff;
+  }
+  .btn-filter-submit { 
+    background: #1a4fa0; 
+    color: #fff; 
+    border: none; 
+    border-radius: 6px; 
+    padding: 5px 14px; 
+    font-size: 11px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-filter-submit:hover { background: #123973; }
+</style>
+
+<div style="margin-bottom:15px; font-size: 13px; color: #475569;">
+    <i class="ti ti-device-computer-camera"></i> <strong>CỔNG THEO DÕI HỆ THỐNG DỮ LIỆU ĐỘNG (Chế độ hiển thị)</strong>
+</div>
+
+<div class="grid-stack" id="dashViewGrid"></div>
+
+<script>
+const userRole = "@role";
+const viewGrid = GridStack.init({
+  column: 12, cellHeight: 60, margin: 12,
+  disableDrag: true, disableResize: true
+});
+
+let loadedCharts = {};
+let currentLayoutConfig = []; 
+
+const mockStaticData = {
+  chartPie: { labels: ["Người lớn","Trẻ em","Ưu tiên"], data: [55,30,15], colors: ["#1a4fa0","#f5c518","#e07b39"] },
+  sukien: {
+    headers: ["Tên sự kiện tổ chức", "Thời gian diễn ra"],
+    rows: [
+      { col1: "Lễ hội Áo Dài cổ truyền", col2: "12/05/2025", badgeClass: "b-blue" },
+      { col1: "Triển lãm Cổ vật Hoàng Cung", col2: "20/05/2025", badgeClass: "b-amber" },
+      { col1: "Festival Huế Quốc Tế 2025", col2: "01/06/2025", badgeClass: "b-green" },
+      { col1: "Tái hiện Đêm Hoàng Cung", col2: "15/06/2025", badgeClass: "b-amber" }
+    ]
+  },
+  camera: [
+    { name: "Cổng A – Ngọ Môn", percent: 88, count: "32.450" },
+    { name: "Cổng B – Hiển Nhơn", percent: 72, count: "26.110" },
+    { name: "Cổng C – Hòa Bình", percent: 56, count: "21.080" },
+    { name: "Cổng D – Chương Đức", percent: 42, count: "15.640" },
+    { name: "Cổng E – Lăng Tự Đức", percent: 28, count: "9.820" }
+  ],
+  nhanvien: {
+    staffs: [
+      { initials: "NA", bg: "#eff6ff", color: "#2563eb", name: "Nguyễn Văn A", role: "Hướng dẫn viên cung đình", status: "Online", statusBadge: "b-green" },
+      { initials: "LB", bg: "#fffbe6", color: "#d97706", name: "Lê Thị B", role: "Kỹ thuật viên số hóa", status: "Trực ban", statusBadge: "b-blue" },
+      { initials: "TC", bg: "#ecfdf5", color: "#059669", name: "Trần Bình C", role: "Chuyên viên bảo tồn", status: "Họp", statusBadge: "b-amber" }
+    ],
+    finance: { revenue: "500.000.000 đ", staffCost: "120.000.000 đ", maintenanceCost: "80.000.000 đ", profit: "300.000.000 đ" }
+  }
+};
+
+function generateTemplateHtml(id, title, iconClass, color, bodyHtml) {
+  return `
+    <div class="grid-stack-item-content">
+      <div class="w-header"><i class="${iconClass}" style="color:${color}"></i> ${title}</div>
+      <div class="w-body">${bodyHtml}</div>
+    </div>
+  `;
+}
+
+function loadDashboardDynamic() {
+  fetch('/api/widgetconfig/get-active-layout')
+    .then(res => res.json())
+    .then(activeLayout => {
+      currentLayoutConfig = activeLayout; 
+
+      activeLayout.forEach(w => {
+         let bodyHtml = "";
+         if (w.widgetId === "chart-bar") {
+              bodyHtml = `
+                <div class="inner-filter-box">
+                  <span style="font-size:11px; font-weight:700; color:#475569;"><i class="ti ti-calendar"></i> TỪ:</span>
+                  <input type="date" id="inputTuNgay" />
+                  <span style="font-size:11px; font-weight:700; color:#475569;"><i class="ti ti-calendar"></i> ĐẾN:</span>
+                  <input type="date" id="inputDenNgay" />
+                  <button class="btn-filter-submit" onclick="submitGridFilter()"><i class="ti ti-search"></i> LỌC</button>
+                </div>
+                <div class="legend-row"><span class="legend-item"><span class="ldot" style="background:#1a4fa0"></span>Khách nội địa</span><span class="legend-item"><span class="ldot" style="background:#0f6e56"></span>Khách quốc tế</span></div>
+                <div style="position:relative; height:200px; width:100%;">
+                  <canvas id="canvas-${w.widgetId}"></canvas>
+                </div>`;
+         }
+         else if (w.widgetId === "chart-line") {
+              bodyHtml = `
+                <div class="legend-row">
+                  <span class="legend-item"><span class="ldot" style="background:#1a4fa0"></span>Nội địa (Triệu đ)</span>
+                  <span class="legend-item"><span class="ldot" style="background:#f5c518"></span>Quốc tế (Triệu đ)</span>
+                </div>
+                <div style="position:relative; height:220px; width:100%;">
+                  <canvas id="canvas-${w.widgetId}"></canvas>
+                </div>`;
+         }
+         else if (w.type === "kpi") {
+              bodyHtml = `<div class="w-kpi-grid" id="kpi-data-container" style="width:100%">Đang tải...</div>`;
+         }
+         else if (w.widgetId === "duan") {
+              bodyHtml = `<div id="duan-table-container">Đang tải...</div>`;
+         }
+
+         else if (w.type === "pie-chart") {
+              bodyHtml = `
+                <div style="display: flex; align-items: center; justify-content: space-between; height: 195px; gap: 15px; margin-top: 5px;">
+                    <div style="position: relative; width: 52%; height: 100%;">
+                        <canvas id="canvas-${w.widgetId}"></canvas>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                            <div style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1;">Tổng Vé</div>
+                            <div style="font-size: 18px; font-weight: 800; color: #0f172a; margin-top: 4px; line-height: 1;">100%</div>
+                        </div>
+                    </div>
+
+                    <div style="width: 48%; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; margin-bottom: 2px;">
+                            <span style="font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 0.03em;">ĐỐI TƯỢNG</span>
+                            <span style="font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 0.03em;">TỶ LỆ</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+                            <span style="display: flex; align-items: center; gap: 6px; font-weight: 600; color: #334155;"><span class="ldot" style="background:#1a4fa0; margin-bottom:0; width:8px; height:8px;"></span>Người lớn</span>
+                            <span style="font-weight: 700; color: #0f172a;">55% <span style="font-size:10px; color:#94a3b8; font-weight:500;">(5.5k)</span></span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+                            <span style="display: flex; align-items: center; gap: 6px; font-weight: 600; color: #334155;"><span class="ldot" style="background:#f5c518; margin-bottom:0; width:8px; height:8px;"></span>Trẻ em</span>
+                            <span style="font-weight: 700; color: #0f172a;">30% <span style="font-size:10px; color:#94a3b8; font-weight:500;">(3.0k)</span></span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+                            <span style="display: flex; align-items: center; gap: 6px; font-weight: 600; color: #334155;"><span class="ldot" style="background:#e07b39; margin-bottom:0; width:8px; height:8px;"></span>Ưu tiên</span>
+                            <span style="font-weight: 700; color: #0f172a;">15% <span style="font-size:10px; color:#94a3b8; font-weight:500;">(1.5k)</span></span>
+                        </div>
+                    </div>
+                </div>`;
+         }
+         else if (w.type === "table") { 
+              bodyHtml = `<table class="w-tbl"><thead><tr>${mockStaticData[w.widgetId].headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${mockStaticData[w.widgetId].rows.map(row => `<tr><td><strong>${row.col1}</strong></td><td><span class="badge ${row.badgeClass}">${row.col2}</span></td></tr>`).join('')}</tbody></table>`;
+         }
+         else if (w.type === "camera") {
+              bodyHtml = mockStaticData.camera.map(c => `<div class="cam-row"><span class="cam-label">${c.name}</span><div class="cam-bar-wrap"><div class="cam-bar" style="width:${c.percent}%;"></div></div><span class="cam-count">${c.count}</span></div>`).join('');
+         }
+         else if (w.type === "staff-finance") {
+              let staffHtml = `<div style="margin-bottom:12px">${mockStaticData.nhanvien.staffs.map(s => `<div class="staff-row"><div class="staff-av" style="background:${s.bg};color:${s.color}">${s.initials}</div><div style="flex:1"><div class="staff-name">${s.name}</div><div class="staff-role">${s.role}</div></div><span class="badge ${s.statusBadge}">${s.status}</span></div>`).join('')}</div>`;
+              let finHtml = `<hr style="border:none;border-top:1px solid #f1f5f9;margin:12px 0"/>`;
+              if (userRole === "Admin") {
+                finHtml += `<div class="summary-row"><span>• Tổng doanh thu</span><span class="summary-val">${mockStaticData.nhanvien.finance.revenue}</span></div><div class="summary-row"><span>• Chi phí nhân sự</span><span class="summary-val">${mockStaticData.nhanvien.finance.staffCost}</span></div><div class="summary-row"><span><strong>• Lợi nhuận ròng</strong></span><span class="summary-val profit">${mockStaticData.nhanvien.finance.profit}</span></div>`;
+              } else {
+                finHtml += `<div style="text-align:center;color:#94a3b8;font-size:11px;padding:4px 0;"><i class="ti ti-lock"></i> Không có quyền xem tài chính</div>`;
+              }
+              bodyHtml = staffHtml + finHtml;
+         }
+
+         const fullWidgetHtml = generateTemplateHtml(w.widgetId, w.title, w.icon, w.color, bodyHtml);
+         viewGrid.addWidget({ x: w.x, y: w.y, w: w.w, h: w.h, id: w.widgetId, content: fullWidgetHtml });
+      });
+
+      initAllStaticWidgetsData();
+      executeFetchChartsOnly(); 
+    })
+    .catch(err => console.error("Lỗi đồng bộ cấu hình layout:", err));
+}
+
+function executeFetchChartsOnly(tuNgay = '', denNgay = '') {
+  let urlLuotKhach = `/api/thongke/luot-tham-quan?tuNgay=${tuNgay}&denNgay=${denNgay}`;
+  fetch(urlLuotKhach)
+    .then(res => res.json())
+    .then(realData => {
+      const rawChartList = realData.chart || [];
+      const labels = rawChartList.map(item => item.title.trim());
+      const dataNoiDia = rawChartList.map(item => item.soLuotTrongNuoc);
+      const dataQuocTe = rawChartList.map(item => item.soLuotQuocTe);
+
+      const canvasElement = document.getElementById(`canvas-chart-bar`);
+      if (canvasElement) {
+         if (loadedCharts["chart-bar"]) {
+             loadedCharts["chart-bar"].data.labels = labels;
+             loadedCharts["chart-bar"].data.datasets[0].data = dataNoiDia;
+             loadedCharts["chart-bar"].data.datasets[1].data = dataQuocTe;
+             loadedCharts["chart-bar"].update(); 
+         } else {
+             loadedCharts["chart-bar"] = new Chart(canvasElement, {
+                  type: "bar",
+                  data: { 
+                     labels: labels, 
+                     datasets: [
+                        { label: "Khách nội địa", data: dataNoiDia, backgroundColor: "#1a4fa0", barPercentage: 0.6, categoryPercentage: 0.7 },
+                        { label: "Khách quốc tế", data: dataQuocTe, backgroundColor: "#0f6e56", barPercentage: 0.6, categoryPercentage: 0.7 }
+                     ] 
+                  },
+                  options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: {
+                      x: { grid: { display: false }, ticks: { color: "#64748b", font: { size: 10, weight: '500' } } },
+                      y: { grid: { color: "#f1f5f9" }, beginAtZero: true, ticks: { color: "#64748b", font: { size: 10 } } }
+                    }
+                  }
+             });
+         }
+      }
+    });
+}
+
+function initAllStaticWidgetsData() {
+   fetch('/api/thongke/dashboard-kpis')
+     .then(r => r.json())
+     .then(kpiData => {
+         const el = document.getElementById("kpi-data-container");
+         if (el) {
+             el.innerHTML = kpiData.map((item, index) => `
+                 <div class="w-kpi-item kpi-bg-${index}">
+                     <div class="w-kpi-icon-box"><i class="${item.icon}" style="color:${item.color}"></i></div>
+                     <div class="w-kpi-info">
+                        <div class="w-kpi-label">${item.label}</div>
+                        <div class="w-kpi-value">${item.value}</div>
+                        <div class="w-kpi-unit">${item.unit}</div>
+                     </div>
+                 </div>`).join('');
+         }
+     });
+
+   fetch('/api/thongke/duan-baoton')
+     .then(r => r.json())
+     .then(tableData => {
+         const el = document.getElementById("duan-table-container");
+         if (el) {
+             el.innerHTML = `
+                 <table class="w-tbl">
+                     <thead><tr>${tableData.headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                     <tbody>${tableData.rows.map(row => `<tr><td><strong>${row.col1}</strong></td><td><span class="badge ${row.badgeClass}">${row.col2}</span></td></tr>`).join('')}</tbody>
+                 </table>`;
+         }
+     });
+
+   fetch('/api/thongke/get-doanhthu-theo-nam')
+     .then(res => res.json())
+     .then(revenueData => {
+         const canvasElement = document.getElementById(`canvas-chart-line`);
+         if (canvasElement) {
+             loadedCharts["chart-line"] = new Chart(canvasElement, { 
+                  type: "line", 
+                  data: { 
+                    labels: revenueData.map(r => r.nam), 
+                    datasets: [
+                      { label: "Nội địa", data: revenueData.map(r => r.doanhThuTrongNuoc / 1e6), borderColor: "#1a4fa0", backgroundColor: "rgba(26, 79, 160, 0.04)", fill: true, tension: 0.35, borderWidth: 3, pointRadius: 2 },
+                      { label: "Quốc tế", data: revenueData.map(r => r.doanhThuQuocTe / 1e6), borderColor: "#f5c518", backgroundColor: "rgba(245, 197, 24, 0.02)", fill: true, tension: 0.35, borderWidth: 3, pointRadius: 2 }
+                    ] 
+                  }, 
+                  options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                      x: { grid: { display: false }, ticks: { color: "#64748b", font: { size: 10, weight: '500' } } },
+                      y: { grid: { color: "#f1f5f9" }, ticks: { color: "#64748b", callback: function(v) { return v + "M"; } } } 
+                    }
+                  } 
+             });
+         }
+     });
+
+   const canvasPie = document.getElementById(`canvas-chart-pie`);
+   if (canvasPie) {
+       loadedCharts["chart-pie"] = new Chart(canvasPie, { 
+          type: "doughnut", 
+          data: { 
+             labels: mockStaticData.chartPie.labels, 
+             datasets: [{ 
+                data: mockStaticData.chartPie.data, 
+                backgroundColor: mockStaticData.chartPie.colors, 
+                borderWidth: 4,             
+                borderColor: "#ffffff",     
+                borderRadius: 5,            
+                hoverOffset: 3 
+             }] 
+          }, 
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { 
+               legend: { display: false }   
+            },
+            cutout: '73%'                   
+          } 
+       });
+   }
+}
+
+function submitGridFilter() {
+  const tuNgayValue = document.getElementById("inputTuNgay").value;
+  const denNgayValue = document.getElementById("inputDenNgay").value;
+  executeFetchChartsOnly(tuNgayValue, denNgayValue);
+}
+
+loadDashboardDynamic();
+</script>

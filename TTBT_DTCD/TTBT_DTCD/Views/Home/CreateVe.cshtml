@@ -1,0 +1,29 @@
+@model TTBT_DTCD.Models.Ve
+@{ ViewData["Title"] = "Thêm vé mới"; }
+<style>.form-page{max-width:680px;margin:0 auto}.form-card{background:#fff;border-radius:10px;border:1px solid #e8e8e8;padding:24px}.form-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #f0f0f0}.form-header i{font-size:22px;color:#1a4fa0}.form-header h2{font-size:15px;font-weight:700;color:#1a1a1a;margin:0}.form-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:14px;border-top:1px solid #f0f0f0}</style>
+<div class="form-page">
+  <div class="form-card">
+    <div class="form-header"><i class="ti ti-plus"></i><h2>Thêm vé mới</h2></div>
+    <form asp-action="CreateVe" method="post">
+
+      <div class="form-section">
+        <div class="form-group"><label>Mã vé</label><input asp-for="MaVe" placeholder="VE-2026-001"/><span asp-validation-for="MaVe" class="form-error"></span></div>
+        <div class="form-group"><label>Loại vé</label>
+          <select asp-for="LoaiVe"><option value="">-- Chọn loại --</option><option>Người lớn</option><option>Trẻ em</option><option>Ưu tiên</option></select>
+          <span asp-validation-for="LoaiVe" class="form-error"></span></div>
+        <div class="form-group"><label>Giá vé (VND)</label><input asp-for="GiaVe" type="number" min="0"/><span asp-validation-for="GiaVe" class="form-error"></span></div>
+        <div class="form-group"><label>Ngày bán</label><input asp-for="NgayBan" type="datetime-local"/><span asp-validation-for="NgayBan" class="form-error"></span></div>
+        <div class="form-group"><label>Điểm bán</label>
+          <select asp-for="DiemBan"><option value="">-- Chọn điểm --</option><option>Đại Nội Huế</option><option>Lăng Khải Định</option><option>Lăng Minh Mạng</option><option>Lăng Tự Đức</option><option>Chùa Thiên Mụ</option></select>
+          <span asp-validation-for="DiemBan" class="form-error"></span></div>
+        <div class="form-group"><label>Nhân viên bán</label><input asp-for="NhanVienBan" placeholder="Họ tên nhân viên"/></div>
+        <div class="form-group full"><label>Trạng thái</label>
+          <select asp-for="TrangThai"><option>Chưa sử dụng</option><option>Đã sử dụng</option><option>Đã hoàn trả</option></select></div>
+      </div>
+      <div class="form-footer">
+        <a asp-action="Ticket" class="btn-action btn-gray"><i class="ti ti-arrow-left"></i> Quay lại</a>
+        <button type="submit" class="btn-action btn-blue"><i class="ti ti-check"></i> Lưu vé</button>
+      </div>
+    </form>
+  </div>
+</div>

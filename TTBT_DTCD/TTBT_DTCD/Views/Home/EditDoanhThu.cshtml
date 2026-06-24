@@ -1,0 +1,34 @@
+@model TTBT_DTCD.Models.DoanhThu
+@{ ViewData["Title"] = "Sửa doanh thu"; }
+<style>
+  .form-page{max-width:680px;margin:0 auto}
+  .form-card{background:#fff;border-radius:10px;border:1px solid #e8e8e8;padding:24px}
+  .form-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #f0f0f0}
+  .form-header i{font-size:22px;color:#1a4fa0}
+  .form-header h2{font-size:15px;font-weight:700;color:#1a1a1a;margin:0}
+  .form-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:14px;border-top:1px solid #f0f0f0}
+</style>
+<div class="form-page">
+  <div class="form-card">
+    <div class="form-header"><i class="ti ti-pencil"></i><h2>Chỉnh sửa doanh thu</h2></div>
+    <form asp-action="EditDoanhThu" method="post">
+      <input type="hidden" asp-for="Id"/>
+      <div class="form-section">
+        <div class="form-group"><label>Ngày</label><input asp-for="Ngay" type="date"/><span asp-validation-for="Ngay" class="form-error"></span></div>
+        <div class="form-group"><label>Loại doanh thu</label>
+          <select asp-for="LoaiDoanhThu"><option value="">-- Chọn loại --</option><option>Bán vé</option><option>Dịch vụ lưu trú</option><option>Dịch vụ ăn uống</option><option>Dịch vụ khác</option></select>
+          <span asp-validation-for="LoaiDoanhThu" class="form-error"></span></div>
+        <div class="form-group"><label>Số tiền (đồng)</label><input asp-for="SoTien" type="number" min="0"/><span asp-validation-for="SoTien" class="form-error"></span></div>
+        <div class="form-group"><label>Điểm thu</label>
+          <select asp-for="DiemThu"><option value="">-- Chọn điểm --</option><option>Đại Nội</option><option>Lăng Khải Định</option><option>Lăng Minh Mạng</option><option>Chùa Thiên Mụ</option><option>Hoàng Thành Huế</option></select>
+          <span asp-validation-for="DiemThu" class="form-error"></span></div>
+        <div class="form-group"><label>Nhân viên phụ trách</label><input asp-for="NhanVienPhuTrach"/></div>
+        <div class="form-group"><label>Nhân viên lập</label><input asp-for="NhanVienLap"/></div>
+      </div>
+      <div class="form-footer">
+        <a asp-action="Revenue" class="btn-action btn-gray"><i class="ti ti-arrow-left"></i> Quay lại</a>
+        <button type="submit" class="btn-action btn-blue"><i class="ti ti-check"></i> Cập nhật</button>
+      </div>
+    </form>
+  </div>
+</div>
